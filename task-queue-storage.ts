@@ -1,13 +1,10 @@
-import { QueueStoragePlugin, Reference, Task } from './types';
+import { QueueStoragePlugin, Reference, TaskQueueItem } from './types';
 
-/**
- * Storage Manager
- * Manage storage load/sync in the queue
- */
-export class QueueStorageManager {
-	currentTasks: Task<any>[] = [];
-	finishedTasks: Task<any>[] = [];
-	references: { [key: string]: Reference<any> } = {};
+/** Task Queue Storage Manager */
+export class TaskQueueStorageManager {
+	currentTasks: TaskQueueItem<unknown>[] = [];
+	finishedTasks: TaskQueueItem<unknown>[] = [];
+	references: { [key: string]: Reference<unknown> } = {};
 
 	protected storage: QueueStoragePlugin = {};
 

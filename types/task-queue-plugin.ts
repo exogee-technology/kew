@@ -1,4 +1,4 @@
-import { Task } from './task';
+import { TaskQueueItem } from './task-queue-item';
 import { Reference } from './reference';
 
 export interface QueueStoragePlugin {
@@ -7,7 +7,11 @@ export interface QueueStoragePlugin {
 }
 
 export interface QueueStoragePluginData {
-	currentTasks: Task<any>[];
-	finishedTasks: Task<any>[];
+	currentTasks: TaskQueueItem<any>[];
+	finishedTasks: TaskQueueItem<any>[];
 	references: { [key: string]: Reference<any> };
+}
+
+export interface TaskQueuePlugin {
+	storage: QueueStoragePlugin;
 }

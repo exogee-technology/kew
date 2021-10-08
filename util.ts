@@ -1,4 +1,4 @@
-import { TaskHandlerInfo, TaskState } from './types';
+import {TaskQueueHandlerInfo, TaskQueueItem, TaskQueueItemStatus} from './types';
 import { v4 } from 'uuid';
 
 export const isSerializable = (data: any): boolean => {
@@ -13,12 +13,17 @@ export const isSerializable = (data: any): boolean => {
 export const sleep = (ms: number): Promise<void> =>
 	new Promise((resolve) => setTimeout(resolve, ms));
 
-export const createInitialTask = (taskType: string, taskData: any, info: TaskHandlerInfo) => ({
-	taskType,
-	taskData,
-	info,
-	taskState: TaskState.QUEUED,
-	id: v4(),
-	date: Date.now(),
-	progress: 0,
-});
+export const createInitialTask = <T>(key: string, info: TaskQueueHandlerInfo, data?: T): TaskQueueItem<T> => {
+
+	return {
+		key,
+		data,
+		info,
+		status: TaskQueueItemStatus.QUEUED,
+		id: v4(),
+		submittedAt: Date.now(),
+		progress: 0,
+		attempts: 0
+	}
+}
+
