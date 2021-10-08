@@ -1,6 +1,6 @@
 {
   "name": "kew",
-  "version": "0.2",
+  "version": "0.2.0",
   "description": "A typed task queue designed for use with React Native with powerful data features & a simple API",
   "main": "dist/index.js",
   "license": "MIT",
