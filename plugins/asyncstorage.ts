@@ -6,14 +6,14 @@ import { TaskQueuePlugin } from '../types';
  * Stores the queue data as a serialized JS object in JSON.
  * @param key - The AsyncStorage key to store this queue in.
  */
-export const asyncStoragePlugin = (key: string): TaskQueuePlugin => ({
+export const asyncStoragePlugin = (key: string): TaskQueuePlugin  => ({
 	storage: {
 		async load() {
 			return await AsyncStorage.getItem(key)
 				.then((tasksJSON: string | null) => tasksJSON ? JSON.parse(tasksJSON) : [])
 				.catch(() => []);
 		},
-		async sync(queue) {
+		async sync(queue: any) {
 			await AsyncStorage.setItem(key, JSON.stringify(queue));
 		},
 	},

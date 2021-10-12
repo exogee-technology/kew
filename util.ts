@@ -13,9 +13,10 @@ export const isSerializable = (data: any): boolean => {
 export const sleep = (ms: number): Promise<void> =>
 	new Promise((resolve) => setTimeout(resolve, ms));
 
-export const createInitialTask = <T>(key: string, info: TaskQueueHandlerInfo, data?: T): TaskQueueItem<T> => {
+export const createInitialTask = <TH, TR>(key: Extract<keyof TH, string>, info: TaskQueueHandlerInfo, data: TH[typeof key]): TaskQueueItem<TH[typeof key], TH, TR> => {
 
 	return {
+		// @ts-ignore @todo
 		key,
 		data,
 		info,

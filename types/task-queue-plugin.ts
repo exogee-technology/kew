@@ -1,17 +1,15 @@
-import { TaskQueueItem } from './task-queue-item';
-import { Reference } from './reference';
 
 export interface QueueStoragePlugin {
-	sync?(queue: QueueStoragePluginData): Promise<void>;
+	sync?(data: QueueStoragePluginData ): Promise<void>;
 	load?(): Promise<QueueStoragePluginData>;
 }
 
-export interface QueueStoragePluginData {
-	currentTasks: TaskQueueItem<any>[];
-	finishedTasks: TaskQueueItem<any>[];
-	references: { [key: string]: Reference<any> };
+export interface QueueStoragePluginData  {
+	currentTasks: any
+	finishedTasks: any;
+	references: any;
 }
 
-export interface TaskQueuePlugin {
-	storage: QueueStoragePlugin;
+export interface TaskQueuePlugin  {
+	storage: QueueStoragePlugin ;
 }

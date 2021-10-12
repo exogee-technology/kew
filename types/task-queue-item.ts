@@ -4,10 +4,10 @@ import { TaskQueueHandlerInfo } from './task-queue-handler';
  * An individual task object.
  * All fields must be serializable.
  */
-export interface TaskQueueItem<T> {
+export interface TaskQueueItem<T, TH, TR> {
 	id: string;
-	data?: T | undefined;
-	key: string;
+	data: T;
+	key: Extract<keyof TH, string>;
 	status: TaskQueueItemStatus;
 	progress: number;
 	attempts: number;

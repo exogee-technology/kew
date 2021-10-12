@@ -6,12 +6,16 @@ export interface TaskQueueHandlerInfo {
 }
 
 export interface TaskQueueHandler<T> {
-	key(): string;
-	info(taskData: T): TaskQueueHandlerInfo;
-	validate?(taskData: T): void;
-	create?(taskData: T, ctx: TaskQueueItemContext): Promise<void>;
-	run(taskData: T, ctx: TaskQueueItemContext): Promise<void>;
-	reducers?: { [key: string]: (accumulator: any, taskData: any, ctx: TaskQueueItemContext) => Promise<any> };
+	key(): TaskQueueHandlerKey<any>;
+	info(data: T): TaskQueueHandlerInfo;
+	validate?(data: T): void;
+	create?(data: T, ctx: TaskQueueItemContext<T, any, any>): Promise<void>;
+	run(data: T, ctx: TaskQueueItemContext<T, any, any>): Promise<void>;
+	reducers?: { [key: string]: (accumulator: any, taskData: any, ctx: TaskQueueItemContext<T, any, any>) => Promise<any> };
 }
 
-export type TaskHandlerList = { [key: string]: TaskQueueHandler<any> };
+export type TaskQueueHandlerKey<TH> = Extract<keyof TH, string>
+
+export type TaskHandlerList<TH, TR> =
+	{ [K in TaskQueueHandlerKey<TH>]?: TaskQueueHandler< TH[K]> }
+

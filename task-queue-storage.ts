@@ -1,14 +1,14 @@
 import { QueueStoragePlugin, Reference, TaskQueueItem } from './types';
 
 /** Task Queue Storage Manager */
-export class TaskQueueStorageManager {
-	currentTasks: TaskQueueItem<unknown>[] = [];
-	finishedTasks: TaskQueueItem<unknown>[] = [];
+export class TaskQueueStorageManager<TH, TR> {
+	currentTasks: TaskQueueItem<any, TH, TR>[] = [];
+	finishedTasks: TaskQueueItem<any, TH, TR>[] = [];
 	references: { [key: string]: Reference<unknown> } = {};
 
-	protected storage: QueueStoragePlugin = {};
+	protected storage: QueueStoragePlugin  = {};
 
-	async use(storage: QueueStoragePlugin) {
+	async use(storage: QueueStoragePlugin ) {
 		this.storage = storage;
 		await this.load();
 	}

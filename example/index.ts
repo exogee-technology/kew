@@ -4,7 +4,7 @@ import {ReverseMessage, reverseMessage} from './reverse-message'
 
 // Define the data types for handlers
 interface TaskHandlers {
-    reverseMessage: ReverseMessage
+    ReverseMessage: ReverseMessage
 }
 
 // Create a new typed queue
@@ -22,7 +22,7 @@ queue.on(
 
 (async() => {
     // Start queue
-    const id = await queue.add('reverseMessage', {message: "!olleH"})
+    const id = await queue.add('ReverseMessage', {message: "!olleH"})
     console.log("Added task to queue id ", id )
     console.log("Starting Queue")
     await queue.start()

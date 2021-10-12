@@ -1,5 +1,5 @@
 // SendMessage.ts
-import { TaskQueueHandler } from '../index';
+import {TaskQueueHandler} from '../index';
 
 // Define the ReverseMessage Task Handler Event
 export interface ReverseMessage {
@@ -8,7 +8,7 @@ export interface ReverseMessage {
 
 // Define the SendMessage Task Handler
 export const reverseMessage: TaskQueueHandler<ReverseMessage> = {
-    key: () => "reverseMessage",
+    key: () => "ReverseMessage",
     info: ({message}) => ({
         friendlyName: `Reverse Message: ${message}`,
         tags: ['message']

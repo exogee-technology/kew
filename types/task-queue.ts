@@ -13,7 +13,7 @@ export interface TaskQueueInterface<TH, TR> {
     stop(): void;
     reducer(key: Extract<keyof TR, string>, initialValue?: TR[typeof key]): Promise<TR[typeof key] | undefined>
     plugins(...plugins: TaskQueuePlugin[]): void
-    on(filter: TaskQueueEventEmitterFilter, callback: TaskQueueEventEmitterCallback): TaskQueueEventEmitterSubscription
-    tasks(): TaskQueueItem<unknown>[]
+    on(filter: TaskQueueEventEmitterFilter<TH, TR> , callback: TaskQueueEventEmitterCallback<TH, TR> ): TaskQueueEventEmitterSubscription
+    tasks(): TaskQueueItem<unknown, TH, TR>[]
     clear(): Promise<void>
 }
