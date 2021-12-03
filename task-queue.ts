@@ -252,7 +252,7 @@ export class TaskQueue<TH={}, TR={}> implements TaskQueueInterface<TH, TR> {
 
 	/** Get all tasks */
 	tasks() {
-		return [...this.storageManager.currentTasks, ...this.storageManager.finishedTasks];
+		return [...this.storageManager.finishedTasks, ...this.storageManager.currentTasks];
 	}
 
 	/** Clear queue */
