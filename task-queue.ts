@@ -6,7 +6,7 @@ import {
 	TaskQueueHandler,
 	TaskQueueInterface,
 	TaskQueuePlugin,
-	TaskQueueItemStatus, TaskQueueHandlerKey,
+	TaskQueueItemStatus, TaskQueueHandlerKey, KewReducerOptions,
 } from './types';
 
 import {TaskQueueStorageManager} from './task-queue-storage';
@@ -192,11 +192,12 @@ export class TaskQueue<TH={}, TR={}> implements TaskQueueInterface<TH, TR> {
 	}
 
 	/**
-	 * Run a reduce over the queue
+	 * Run a reducer over the queue
 	 * @param key: A named reducer string, or a custom function to run over each task.
 	 * @param initialValue: The initial value to use as the accumulator.
+	 * @param opts: Reducer Options
 	 */
-	async reducer(key: Extract<keyof TR, string>, initialValue?: TR[typeof key]): Promise<TR[typeof key] | undefined> {
+	async reducer(key: Extract<keyof TR, string>, initialValue?: TR[typeof key], opts?: KewReducerOptions<TR[typeof key], TH, TR>): Promise<TR[typeof key] | undefined> {
 		let accumulator = initialValue;
 
 		for (const task of this.storageManager.currentTasks) {
