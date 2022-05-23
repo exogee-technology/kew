@@ -44,6 +44,7 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
     this.storageManager
   );
   protected isRunning = false;
+  protected isPaused = false;
 
   protected log(message: string, data?: any) {
     console.log("kew: ", message, data);
@@ -177,8 +178,8 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
       // Pull in the next task and update status
       const [nextTask] = this.storageManager.currentTasks;
 
-      // If no tasks in the queue, sleep for a short moment
-      if (!nextTask) {
+      // If no tasks in the queue, or the queue is paused, sleep for a short moment
+      if (!nextTask || this.isPaused) {
         await sleep(1000);
         continue;
       }
@@ -240,6 +241,14 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
   stop() {
     this.onQueueStopped?.(`Manually stopped queue`);
     this.isRunning = false;
+  }
+
+  pause() {
+    this.isPaused = true;
+  }
+
+  resume() {
+    this.isPaused = false;
   }
 
   /**
