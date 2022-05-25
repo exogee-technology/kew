@@ -7,7 +7,7 @@ const task_queue_item_context_1 = require("./task-queue-item-context");
 const task_queue_event_emitter_1 = require("./task-queue-event-emitter");
 const util_1 = require("./util");
 /** Convenience helper to create a new task queue with plugins and handlers */
-const createTaskQueue = ({ plugins, handlers }) => {
+const createTaskQueue = ({ plugins, handlers, }) => {
     const queue = new TaskQueue();
     plugins && queue.plugins(...plugins);
     handlers && queue.handlers(...handlers);
@@ -25,9 +25,12 @@ class TaskQueue {
         this.storageManager = new task_queue_storage_1.TaskQueueStorageManager();
         this.listenerManager = new task_queue_event_emitter_1.TaskQueueEventEmitterManager(this.storageManager);
         this.isRunning = false;
+        this.isPaused = false;
+        this.onQueueStopped = undefined;
+        this.onQueueStarted = undefined;
     }
     log(message, data) {
-        console.log('kew: ', message, data);
+        console.log("kew: ", message, data);
     }
     /**
      * Run a task immediately without adding to the queue
@@ -49,7 +52,7 @@ class TaskQueue {
             await registeredHandler.create(task.data, new task_queue_item_context_1.TaskQueueItemContext(this.storageManager, this.listenerManager, this, task));
         // Run the task with task data and context
         task.status = types_1.TaskQueueItemStatus.IN_PROGRESS;
-        await registeredHandler.run(task.data, new task_queue_item_context_1.TaskQueueItemContext(this.storageManager, this.listenerManager, this, task));
+        await registeredHandler.run(task.data, new task_queue_item_context_1.TaskQueueItemContext(this.storageManager, this.listenerManager, this, task, true));
         // Return the task data at the end
         return task.data;
     }
@@ -67,7 +70,7 @@ class TaskQueue {
         this.log("A handler with this key does exist");
         // Check that data is serializable
         if (!util_1.isSerializable(data))
-            throw new Error('Data must be serializable');
+            throw new Error("Data must be serializable");
         this.log("Data is serializable");
         // If the handler has a validate method, run it to check the taskData
         if (registeredHandler.validate)
@@ -97,11 +100,12 @@ class TaskQueue {
         if (this.isRunning)
             throw new Error("Task Queue is already running");
         this.isRunning = true;
+        this.onQueueStarted?.();
         while (this.isRunning) {
             // Pull in the next task and update status
             const [nextTask] = this.storageManager.currentTasks;
-            // If no tasks in the queue, sleep for a short moment
-            if (!nextTask) {
+            // If no tasks in the queue, or the queue is paused, sleep for a short moment
+            if (!nextTask || this.isPaused) {
                 await util_1.sleep(1000);
                 continue;
             }
@@ -132,6 +136,7 @@ class TaskQueue {
                     // For permanent failure, unknown failures, and after three retries, stop the queue
                     this.isRunning = false;
                     nextTask.status = types_1.TaskQueueItemStatus.FAILED;
+                    this.onQueueStopped?.(`Failed on "${nextTask.info.name}" - ${nextTask.lastMessage}`);
                 }
             }
             // Persist queue
@@ -142,14 +147,22 @@ class TaskQueue {
     }
     /** Stop a currently running queue */
     stop() {
+        this.onQueueStopped?.(`Manually stopped queue`);
         this.isRunning = false;
     }
+    pause() {
+        this.isPaused = true;
+    }
+    resume() {
+        this.isPaused = false;
+    }
     /**
-     * Run a reduce over the queue
+     * Run a reducer over the queue
      * @param key: A named reducer string, or a custom function to run over each task.
      * @param initialValue: The initial value to use as the accumulator.
+     * @param opts: Reducer Options
      */
-    async reducer(key, initialValue) {
+    async reducer(key, initialValue, opts) {
         let accumulator = initialValue;
         for (const task of this.storageManager.currentTasks) {
             // Check task has a taskType and registered handler
@@ -195,7 +208,10 @@ class TaskQueue {
     }
     /** Get all tasks */
     tasks() {
-        return [...this.storageManager.currentTasks, ...this.storageManager.finishedTasks];
+        return [
+            ...this.storageManager.finishedTasks,
+            ...this.storageManager.currentTasks,
+        ];
     }
     /** Clear queue */
     async clear() {
