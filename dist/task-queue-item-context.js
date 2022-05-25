@@ -4,17 +4,20 @@ exports.TaskQueueItemContext = void 0;
 const uuid_1 = require("uuid");
 /** Task Queue Item Context Manager */
 class TaskQueueItemContext {
-    constructor(storageManager, eventEmitterManager, taskQueue, task) {
+    constructor(storageManager, eventEmitterManager, taskQueue, task, noEvents) {
+        this.noEvents = noEvents;
         // Update the task data
         this.setTaskData = async (data) => {
             this.task.data = { ...this.task.data, ...data };
-            this.eventEmitterManager.call(this.task);
+            if (!this.noEvents)
+                this.eventEmitterManager.call(this.task);
             await this.storageManager.sync();
         };
         // Change the task progress
         this.setProgress = async (progress) => {
             this.task.progress = progress;
-            this.eventEmitterManager.call(this.task);
+            if (!this.noEvents)
+                this.eventEmitterManager.call(this.task);
             await this.storageManager.sync();
         };
         // Create a new unique ID
