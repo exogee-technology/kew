@@ -21,11 +21,10 @@ importers:
       esbuild: 0.15.13
       esbuild-register: 3.4.1
       typescript: 4.3.5
-    dependencies:
-      typescript: 4.3.5
     devDependencies:
       esbuild: 0.15.13
       esbuild-register: 3.4.1_esbuild@0.15.13
+      typescript: 4.3.5
 
   packages/example:
     specifiers:
@@ -35,23 +34,24 @@ importers:
       typescript: 4.3.5
     dependencies:
       "@exogee/kew": link:../core
-      typescript: 4.3.5
     devDependencies:
       esbuild: 0.15.13
       esbuild-register: 3.4.1_esbuild@0.15.13
+      typescript: 4.3.5
 
   packages/react-native:
     specifiers:
+      "@exogee/kew": workspace:0.4.0
       "@react-native-async-storage/async-storage": 1.15.5
       esbuild: 0.15.13
       esbuild-register: 3.4.1
       typescript: 4.3.5
-    dependencies:
-      typescript: 4.3.5
     devDependencies:
+      "@exogee/kew": link:../core
       "@react-native-async-storage/async-storage": 1.15.5
       esbuild: 0.15.13
       esbuild-register: 3.4.1_esbuild@0.15.13
+      typescript: 4.3.5
 
 packages:
   /@cspotcode/source-map-consumer/0.8.0:
@@ -565,7 +565,6 @@ packages:
       }
     engines: { node: ">=4.2.0" }
     hasBin: true
-    dev: false
 
   /yn/3.1.1:
     resolution:

@@ -1,1 +1,1 @@
-export * from "./asyncstorage";
+export * from "./platform";
