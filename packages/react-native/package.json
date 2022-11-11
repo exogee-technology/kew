@@ -1,0 +1,31 @@
+{
+  "name": "@exogee/kew-react-native",
+  "version": "0.4.0",
+  "description": "React Native platform plugin for @exogee/kew",
+  "exports": {
+    ".": {
+      "require": "./lib/index.cjs",
+      "import": "./lib/index.mjs"
+    }
+  },
+  "source": "src/index.ts",
+  "types": "lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm build:esm && pnpm build:cjs && pnpm build:types",
+    "build:esm": "esbuild src/index.ts --outfile=lib/index.mjs --bundle --format=esm",
+    "build:cjs": "esbuild src/index.ts --outfile=lib/index.cjs --bundle --format=cjs",
+    "build:types": "tsc src/*.ts --outDir lib --declaration --emitDeclarationOnly"
+  },
+  "devDependencies": {
+    "@react-native-async-storage/async-storage": "1.15.5",
+    "typescript": "4.3.5",
+    "@exogee/kew": "workspace:0.4.0",
+    "esbuild": "0.15.13",
+    "esbuild-register": "3.4.1"
+  },
+  "peerDependencies": {
+    "@react-native-async-storage/async-storage": "1.15.5",
+    "@exogee/kew": "workspace:0.4.0"
+  }
+}
