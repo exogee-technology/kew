@@ -7,7 +7,9 @@
   "private": true,
   "scripts": {
     "prettier": "prettier --write .",
-    "test:prettier": "prettier --check ."
+    "test:prettier": "prettier --check .",
+    "publish:dry": "pnpm publish --recursive --access public --dry-run",
+    "publish": "pnpm publish --recursive --access public"
   },
   "dependencies": {
     "prettier": "2.7.1",
