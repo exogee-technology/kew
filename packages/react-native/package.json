@@ -1,6 +1,6 @@
 {
   "name": "@exogee/kew-react-native",
-  "version": "0.4.0-beta.1",
+  "version": "0.4.0-beta.2",
   "description": "React Native platform plugin for @exogee/kew",
   "exports": {
     ".": {
@@ -8,6 +8,8 @@
       "import": "./lib/index.mjs"
     }
   },
+  "main": "lib/index.cjs",
+  "module": "lib/index.mjs",
   "source": "src/index.ts",
   "types": "lib/index.d.ts",
   "license": "MIT",
