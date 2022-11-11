@@ -1,13 +1,13 @@
 {
   "name": "@exogee/kew-example",
-  "version": "0.4.0",
+  "version": "0.4.0.beta.0",
   "description": "An example project that demonstrates use of @exogee/kew",
   "bin": "bin/index.js",
   "source": "src/index.ts",
   "license": "MIT",
   "scripts": {
     "start": "pnpm build && node bin/index.mjs",
-    "build": "esbuild src/index.ts --outfile=bin/index.mjs --bundle --platform=node"
+    "build": "esbuild src/index.ts --outfile=bin/index.js --bundle --platform=node --banner:js=\"#!/usr/bin/env node\""
   },
   "dependencies": {
     "@exogee/kew": "workspace:0.4.0"
