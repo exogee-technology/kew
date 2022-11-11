@@ -1,6 +1,6 @@
 {
   "name": "@exogee/kew-react-native",
-  "version": "0.4.0.beta.0",
+  "version": "0.4.0-beta.0",
   "description": "React Native platform plugin for @exogee/kew",
   "exports": {
     ".": {
