@@ -12,7 +12,7 @@ A typed task queue with a simple API.
 
 ---
 
-## Actions 
+## Actions
 
 - Simple objects with lifecycle methods.
 - Can contain reducer functions to report queue data.
@@ -29,7 +29,6 @@ A typed task queue with a simple API.
 ## Example Usage
 
 - See `@exogee/kew-example`
-
 
 ## API
 
@@ -132,6 +131,7 @@ export default AsyncStoragePlugin;
 ## Task Context
 
 ### `async setData(data: any): Promise<void>`
+
 Update the task data
 
 ---

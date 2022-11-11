@@ -6,7 +6,7 @@
   "source": "src/index.ts",
   "license": "MIT",
   "scripts": {
-	      "build": "esbuild src/index.ts --outfile=dist/index.js --bundle --format=esm"
+    "build": "esbuild src/index.ts --outfile=dist/index.js --bundle --format=esm"
   },
   "dependencies": {
     "typescript": "4.3.5"
