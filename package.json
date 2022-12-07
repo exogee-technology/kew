@@ -6,14 +6,18 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-      "build": "pnpm run --recursive build",
-      "prettier": "pnpm run --recursive prettier",
-      "test:prettier": "pnpm run --recursive test:prettier",
-      "test:tsc": "pnpm run --recursive test:tsc",
+    "build": "pnpm run --recursive build",
+    "prettier": "pnpm run --recursive prettier",
+      "test": "pnpm run --recursive test",
+    "test:prettier": "pnpm run --recursive test:prettier",
+    "test:tsc": "pnpm run --recursive test:tsc",
     "pub:dry": "pnpm publish --recursive --access public --dry-run",
     "pub": "pnpm publish --recursive --access public"
   },
   "devDependencies": {
-      "typescript": "4.3.5"
+    "typescript": "4.3.5",
+      "esbuild": "0.15.13",
+      "esbuild-register": "3.4.1",
+      "prettier": "2.8.0"
   }
 }

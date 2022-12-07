@@ -56,10 +56,7 @@ export class TaskQueue implements TaskQueueInterface {
    * @param key - The unique key of the action to perform.
    * @param props - Any props required by the action.
    */
-  async run(
-    key: string,
-    props: any,
-  ): Promise<any> {
+  async run(key: string, props: any): Promise<any> {
     // Check if an action exists with this key
     const action = this.actions[key];
     if (!action) throw new Error(`No action with key '${key}'`);
@@ -68,16 +65,12 @@ export class TaskQueue implements TaskQueueInterface {
     if (action.validate) action.validate(props);
 
     // Create task object
-    const task = createInitialTask(
-      key,
-      action.metadata?.(props),
-      props
-    );
+    const task = createInitialTask(key, action.metadata?.(props), props);
 
     // If the action has a create method, run it to prepare the queue item
     if (action.create)
       await action.create(
-              task.props,
+        task.props,
         new TaskQueueItemContext(
           this.storageManager,
           this.listenerManager,
@@ -100,7 +93,7 @@ export class TaskQueue implements TaskQueueInterface {
     );
 
     // Return the task props at the end
-      return task.props;
+    return task.props;
   }
 
   /**
@@ -109,10 +102,7 @@ export class TaskQueue implements TaskQueueInterface {
    * @param props - Any props required by the action.
    * @returns Promise<string> A unique task ID
    * */
-  async add(
-    key: string,
-    props: any
-  ): Promise<string> {
+  async add(key: string, props: any): Promise<string> {
     // Check if an action exists with this key
     const action = this.actions[key];
     if (!action) throw new Error(`No action with key '${key}'`);
@@ -124,11 +114,7 @@ export class TaskQueue implements TaskQueueInterface {
     if (action.validate) action.validate(props);
 
     // Create task object
-    const task = createInitialTask(
-      key,
-      action.metadata?.(props),
-      props
-    );
+    const task = createInitialTask(key, action.metadata?.(props), props);
 
     // Push task on to the queue
     this.storageManager.currentTasks.push(task);
@@ -137,7 +123,7 @@ export class TaskQueue implements TaskQueueInterface {
     // If the handler has a create method, run it to prepare the queue item
     if (action.create)
       await action.create(
-              task.props,
+        task.props,
         new TaskQueueItemContext(
           this.storageManager,
           this.listenerManager,
@@ -173,7 +159,7 @@ export class TaskQueue implements TaskQueueInterface {
         continue;
       }
 
-        nextTask.status = TaskStatus.IN_PROGRESS;
+      nextTask.status = TaskStatus.IN_PROGRESS;
       nextTask.attempts++;
       if (!nextTask.startedAt) nextTask.startedAt = Date.now();
 
@@ -193,7 +179,7 @@ export class TaskQueue implements TaskQueueInterface {
         );
 
         // If we got here, the task completed with success
-          nextTask.status = TaskStatus.FINISHED;
+        nextTask.status = TaskStatus.FINISHED;
         nextTask.finishedAt = Date.now();
         this.storageManager.finishedTasks.push(nextTask);
         this.storageManager.currentTasks.shift();

@@ -5,17 +5,16 @@ import { TaskQueue } from "./queue";
 
 /** Task Queue Item Context Manager */
 export class TaskQueueItemContext {
-
-    task: Task;
-    storageManager: TaskQueueStorageManager;
-    eventEmitterManager: TaskQueueEventEmitterManager;
-    taskQueue: TaskQueue;
+  task: Task;
+  storageManager: TaskQueueStorageManager;
+  eventEmitterManager: TaskQueueEventEmitterManager;
+  taskQueue: TaskQueue;
 
   constructor(
-          storageManager: TaskQueueStorageManager,
-          eventEmitterManager: TaskQueueEventEmitterManager,
-          taskQueue: TaskQueue,
-          task: Task,
+    storageManager: TaskQueueStorageManager,
+    eventEmitterManager: TaskQueueEventEmitterManager,
+    taskQueue: TaskQueue,
+    task: Task,
     private noEvents?: boolean
   ) {
     this.storageManager = storageManager;
@@ -25,21 +24,18 @@ export class TaskQueueItemContext {
   }
 
   // Update the props
-    setProps = async (props: any): Promise<void> => {
+  setProps = async (props: any): Promise<void> => {
     this.task.props = { ...this.task.props, ...props };
     if (!this.noEvents) this.eventEmitterManager.call(this.task);
     await this.storageManager.sync();
   };
 
   // Return the full raw task data
-    getRawTask = (): Task => {
+  getRawTask = (): Task => {
     return { ...this.task };
   };
 
-  addTask = (
-    key: string,
-    props: any,
-  ): Promise<string> => {
-      return this.taskQueue.add(key, props);
+  addTask = (key: string, props: any): Promise<string> => {
+    return this.taskQueue.add(key, props);
   };
 }

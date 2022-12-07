@@ -1,8 +1,4 @@
-import {
-  ActionMetadata,
-  Task,
-  TaskStatus,
-} from "./types";
+import { ActionMetadata, Task, TaskStatus } from "./types";
 
 const uniqueId = () => Math.floor(Math.random() * Date.now()).toString();
 
@@ -21,7 +17,7 @@ export const sleep = (ms: number): Promise<void> =>
 export const createInitialTask = (
   key: string,
   metadata: ActionMetadata = {},
-  props: any = {},
+  props: any = {}
 ): Task => {
   return {
     key,

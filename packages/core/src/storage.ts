@@ -2,8 +2,8 @@ import { QueueStoragePlugin, Task } from "./types";
 
 /** Task Queue Storage Manager */
 export class TaskQueueStorageManager {
-    currentTasks: Task[] = [];
-    finishedTasks: Task[] = [];
+  currentTasks: Task[] = [];
+  finishedTasks: Task[] = [];
 
   protected storage: QueueStoragePlugin = {};
 

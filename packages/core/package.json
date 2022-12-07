@@ -16,13 +16,9 @@
     "build:cjs": "esbuild src/index.ts --outfile=lib/index.cjs --bundle --format=cjs",
     "build:types": "tsc --outDir lib --declaration --emitDeclarationOnly",
     "prettier": "prettier --write .",
+    "test": "pnpm test:prettier && pnpm test:tsc",
     "test:prettier": "prettier --check .",
-    "test:tsc": "tsc --noEmit"
+    "test:tsc": "tsc --noEmit --emitDeclarationOnly false"
   },
-  "license": "MIT",
-  "devDependencies": {
-    "typescript": "4.3.5",
-    "esbuild": "0.15.13",
-    "esbuild-register": "3.4.1"
-  }
+  "license": "MIT"
 }

@@ -8,15 +8,11 @@ import { Task } from "./task";
 import { Action } from "./action";
 
 export interface KewReducerOptions {
-    filter?: (task: Task) => boolean;
+  filter?: (task: Task) => boolean;
 }
 
 export interface TaskQueueInterface {
-
-  run(
-          key: string,
-          props?: any
-          ): Promise<any>;
+  run(key: string, props?: any): Promise<any>;
 
   add(key: string, props: any): Promise<string>;
 
@@ -27,7 +23,7 @@ export interface TaskQueueInterface {
   reducer(
     key: string,
     initialValue?: any,
-    options?: KewReducerOptions,
+    options?: KewReducerOptions
   ): Promise<any>;
 
   addActions(...actions: Action[]): void;
@@ -35,12 +31,11 @@ export interface TaskQueueInterface {
   plugins(...plugins: TaskQueuePlugin[]): void;
 
   on(
-          filter: TaskQueueEventEmitterFilter,
-          callback: TaskQueueEventEmitterCallback
+    filter: TaskQueueEventEmitterFilter,
+    callback: TaskQueueEventEmitterCallback
   ): TaskQueueEventEmitterSubscription;
 
   tasks(): Task[];
 
   clear(): Promise<void>;
-
 }

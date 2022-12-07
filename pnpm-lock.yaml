@@ -4,46 +4,32 @@ importers:
 
   .:
     specifiers:
-      typescript: 4.3.5
-    devDependencies:
-      typescript: 4.3.5
-
-  packages/core:
-    specifiers:
       esbuild: 0.15.13
       esbuild-register: 3.4.1
+      prettier: 2.8.0
       typescript: 4.3.5
     devDependencies:
       esbuild: 0.15.13
       esbuild-register: 3.4.1_esbuild@0.15.13
+      prettier: 2.8.0
       typescript: 4.3.5
+
+  packages/core:
+    specifiers: {}
 
   packages/example:
     specifiers:
       '@exogee/kew': workspace:0.4.0-beta.2
-      esbuild: 0.15.13
-      esbuild-register: 3.4.1
-      typescript: 4.3.5
     dependencies:
       '@exogee/kew': link:../core
-    devDependencies:
-      esbuild: 0.15.13
-      esbuild-register: 3.4.1_esbuild@0.15.13
-      typescript: 4.3.5
 
-  packages/react-native:
+  packages/react-native-async-storage:
     specifiers:
       '@exogee/kew': workspace:0.4.0-beta.2
       '@react-native-async-storage/async-storage': 1.15.5
-      esbuild: 0.15.13
-      esbuild-register: 3.4.1
-      typescript: 4.3.5
     devDependencies:
       '@exogee/kew': link:../core
       '@react-native-async-storage/async-storage': 1.15.5
-      esbuild: 0.15.13
-      esbuild-register: 3.4.1_esbuild@0.15.13
-      typescript: 4.3.5
 
 packages:
 
@@ -321,6 +307,12 @@ packages:
 
   /ms/2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
+    dev: true
+
+  /prettier/2.8.0:
+    resolution: {integrity: sha512-9Lmg8hTFZKG0Asr/kW9Bp8tJjRVluO8EJQVfY2T7FMw9T5jy4I/Uvx0Rca/XWf50QQ1/SS48+6IJWnrb+2yemA==}
+    engines: {node: '>=10.13.0'}
+    hasBin: true
     dev: true
 
   /typescript/4.3.5:

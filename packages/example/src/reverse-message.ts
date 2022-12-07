@@ -16,7 +16,7 @@ export const reverseMessage: Action = {
   validate: ({ message }) => {
     if (!message) throw new Error("Missing Message");
   },
-    run: async ({ message }, { setProps }) => {
+  run: async ({ message }, { setProps }) => {
     await setProps({ message: message.split("").reverse().join("") });
   },
 };

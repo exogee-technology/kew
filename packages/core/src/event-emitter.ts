@@ -23,7 +23,7 @@ export class TaskQueueEventEmitterManager {
    */
   add(
     callback: TaskQueueEventEmitterCallback,
-    filter: TaskQueueEventEmitterFilter,
+    filter: TaskQueueEventEmitterFilter
   ): TaskQueueEventEmitterSubscription {
     this.listeners.push({
       filter,

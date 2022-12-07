@@ -1,7 +1,12 @@
 {
-    "extends": "../../tsconfig.json",
-    "include": ["./src"],
-    "rootDir": "./src",
-    "references": [
-                { "path": "../core" }
-        ]}
+  "extends": "../../tsconfig.json",
+  "include": ["./src"],
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "rootDir": "src",
+    "outDir": "lib",
+    "emitDeclarationOnly": true,
+    "declaration": true
+  },
+  "references": [{ "path": "../core" }]
+}
