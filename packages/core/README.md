@@ -2,112 +2,111 @@
 
 A typed task queue with a simple API.
 
----
+- Create a _Queue_
+- Attach a _Platform_ for storage and data persistence.
+- Register one or more _Action_\ s to perform various types of tasks.
+- Actions are simple objects with lifecycle methods.
+- Add _Task_\ s to the _Queue_.
 
-## Features
+## Example
 
-- Create one or more _Queues_.
-- Attach _Platforms_ for storage and data persistence.
-- Register _Actions_ to perform various types of tasks.
+```ts
+// index.ts
+import { Queue, TaskStatus, Action } from "@exogee/kew";
+import { Platform } from "@exogee/kew-react-native-async-storage";
 
----
+const reverseStringAction: Action = {
+  key: () => "ReverseString",
+  run: async ({ value }, { setProps }) => {
+    await setProps({ value: value.split("").reverse().join("") });
+  },
+};
 
-## Actions
+// Create a new queue
+const queue = new Queue({
+  platform: new Platform("my_application_queue"),
+  actions: [reverseStringAction],
+});
 
-- Simple objects with lifecycle methods.
-- Can contain reducer functions to report queue data.
+// Register an event listener
+queue.on(
+  (task) => task.status === TaskStatus.FINISHED,
+  ({ props }) => {
+    console.log("Task completed: ", props.value);
+    queue.stop();
+  }
+);
 
----
+// Add task to the queue and start
+(async () => {
+  await queue.add("ReverseString", { value: "!olleH" });
+  await queue.start();
+})();
+```
 
-## Tasks
-
-- Individual instance of an action with its data
-- Can store serializable data that persists across app restarts.
-
----
-
-## Example Usage
-
-- See `@exogee/kew-example`
+See `@exogee/kew-example` for a more complex example
 
 ## API
 
-### `createTaskQueue({ plugins: TaskQueuePlugin[], handlers: TaskQueueHandler[] }): TaskQueue`
+### `const queue = new Queue({ platform?, actions? });`
 
-Convenience method to create a new task queue with the provided plugins and handlers.
+Create a new queue with optional platform and Actions
 
----
+### `async queue.run(actionKey, props)`
 
-### `async TaskQueue.run(key: keyof TH, data?: typeof key): Promise<typeof key>`
+Run the action `actionKey` with optional `props` and return the result immediately, without adding to the queue.
 
-Add a new task of type `key` to the queue with optional `data`
+### `async queue.add(actionKey, props)`
 
----
+Add a new task of action type `actionKey` to the queue with optional `props` - returns a unique task ID.
 
-### `async TaskQueue.add(key: keyof TH, data?: typeof key): Promise<string>`
-
-Add a new task of type `key` to the queue with optional `data`
-
----
-
-### `async TaskQueue.start(): Promise<void>`
+### `async queue.start()`
 
 Start the queue.
 
----
-
-### `TaskQueue.stop(): void`
+### `queue.stop()`
 
 Stop the queue.
 
----
+### `queue.pause()`
 
-### `TaskQueue.reducer(reducer: keyof TR, initialValue?: typeof reducer, filter?: TaskQueueFilterFunction): Promise<typeof reducer>`
+Pause the queue
 
-Run a named reducer over the queue
+### `queue.unpause()`
 
+Unpause the queue
+
+### `async queue.reducer(reducerKey, initialValue, filter)`
+
+Run the reducer named `reducerKey` over the queue.
 Optionally, an `initialValue` can be provided which will be the initial value of the accumulator.
 Optionally, a `filter` function can be provided which will only apply the reducer if the filter returns true for a task.
 
-Returns a promise with the reduced data.
+Returns a promise with the reduced data result.
 
----
+### `queue.addActions(...actions[])`
 
-### `TaskQueue.plugins(...plugins: TaskQueuePlugin[]): void`
+Register one or more actions if not registered in the constructor.
 
-Register a plugin- can also be registered in `createTaskQueue`
-
----
-
-### `TaskQueue.handlers(...handlers: TaskQueueHandler[]): void`
-
-Register one or more task handlers- can also be registered in `createTaskQueue`
-
----
-
-### `TaskQueue.on(filter: TaskQueueFilterFunction, callback: TaskQueueEventCallback): TaskQueueEventSubscription`
+### `queue.on(filter, callback): TaskQueueEventSubscription`
 
 Subscribe to a task queue event.
 Returns a subscription object with a remove() method to unsubscribe.
 
----
-
-### `TaskQueue.tasks(): TaskQueueItem[]`
+### `queue.tasks()`
 
 Get a list of all tasks.
 
----
-
-### `async TaskQueue.clear(): Promise<void>`
+### `async queue.clear()`
 
 Remove all tasks from the queue
 
----
+## Platforms
 
-## Example Plugin
+### Example Platform
 
 ```ts
-const AsyncStoragePlugin: QueuePlugin = {
+const AsyncStoragePlatform: Platform = {
   storage: {
     // load is called when the queue data needs to be reloaded.
     async load() {
@@ -123,22 +122,5 @@ const AsyncStoragePlugin: QueuePlugin = {
   },
 };
 
-export default AsyncStoragePlugin;
+export default AsyncStoragePlatform;
 ```
-
----
-
-## Task Context
-
-### `async setData(data: any): Promise<void>`
-
-Update the task data
-
----
-
-## Named Reducers
-
-- Tasks can implement any number of named reducers.
-- When `TaskQueue.reduce(reducerName)` is called, each queue task's reducer will be called in order where available-
-  with the accumulated result as the first parameter, and the new task data as the second.
-- An initial value can be provided to runTaskReducer as an optional second argument.
