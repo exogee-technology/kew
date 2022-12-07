@@ -1,17 +1,12 @@
-import { TaskQueuePlugin } from "./plugin";
-import {
-  TaskQueueEventEmitterCallback,
-  TaskQueueEventEmitterFilter,
-  TaskQueueEventEmitterSubscription,
-} from "./event-emitter";
+import { EventCallback, EventFilter, EventSubscription } from "./event";
 import { Task } from "./task";
 import { Action } from "./action";
 
-export interface KewReducerOptions {
-  filter?: (task: Task) => boolean;
+export interface ReducerOptions {
+  filter: EventFilter;
 }
 
-export interface TaskQueueInterface {
+export interface QueueInterface {
   run(key: string, props?: any): Promise<any>;
 
   add(key: string, props: any): Promise<string>;
@@ -23,17 +18,10 @@ export interface TaskQueueInterface {
   reducer(
     key: string,
     initialValue?: any,
-    options?: KewReducerOptions
+    options?: ReducerOptions
   ): Promise<any>;
 
-  addActions(...actions: Action[]): void;
-
-  plugins(...plugins: TaskQueuePlugin[]): void;
-
-  on(
-    filter: TaskQueueEventEmitterFilter,
-    callback: TaskQueueEventEmitterCallback
-  ): TaskQueueEventEmitterSubscription;
+  on(filter: EventFilter, callback: EventCallback): EventSubscription;
 
   tasks(): Task[];
 

@@ -6,7 +6,7 @@
     "declaration": true,
     "composite": true,
     "moduleResolution": "node",
-    "rootDir": "src",
+    "rootDir": "./src",
     "outDir": "lib"
   }
 }

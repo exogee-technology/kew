@@ -1,5 +1,5 @@
-export * from "./event-emitter";
-export * from "./plugin";
+export * from "./event";
+export * from "./platform";
 export * from "./task";
 export * from "./context";
 export * from "./action";

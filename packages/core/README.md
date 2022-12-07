@@ -12,7 +12,7 @@ A typed task queue with a simple API.
 
 ```ts
 // index.ts
-import { Queue, TaskStatus, Action } from "@exogee/kew";
+import { Queue, TaskStatus, Action, Logging } from "@exogee/kew";
 import { Platform } from "@exogee/kew-react-native-async-storage";
 
 const reverseStringAction: Action = {
@@ -26,6 +26,7 @@ const reverseStringAction: Action = {
 const queue = new Queue({
   platform: new Platform("my_application_queue"),
   actions: [reverseStringAction],
+  logging: Logging.DEBUG,
 });
 
 // Register an event listener

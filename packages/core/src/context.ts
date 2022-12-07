@@ -1,33 +1,22 @@
 import { Task } from "./types";
-import { TaskQueueStorageManager } from "./storage";
-import { TaskQueueEventEmitterManager } from "./event-emitter";
-import { TaskQueue } from "./queue";
+import { PlatformManager } from "./platform";
+import { EventManager } from "./event";
+import { Queue } from "./queue";
 
-/** Task Queue Item Context Manager */
-export class TaskQueueItemContext {
-  task: Task;
-  storageManager: TaskQueueStorageManager;
-  eventEmitterManager: TaskQueueEventEmitterManager;
-  taskQueue: TaskQueue;
-
+export class Context {
   constructor(
-    storageManager: TaskQueueStorageManager,
-    eventEmitterManager: TaskQueueEventEmitterManager,
-    taskQueue: TaskQueue,
-    task: Task,
+    protected platformManager: PlatformManager,
+    protected eventManager: EventManager,
+    protected queue: Queue,
+    protected task: Task,
     private noEvents?: boolean
-  ) {
-    this.storageManager = storageManager;
-    this.eventEmitterManager = eventEmitterManager;
-    this.taskQueue = taskQueue;
-    this.task = task;
-  }
+  ) {}
 
   // Update the props
   setProps = async (props: any): Promise<void> => {
     this.task.props = { ...this.task.props, ...props };
-    if (!this.noEvents) this.eventEmitterManager.call(this.task);
-    await this.storageManager.sync();
+    if (!this.noEvents) this.eventManager.call(this.task);
+    await this.platformManager.sync();
   };
 
   // Return the full raw task data
@@ -36,6 +25,6 @@ export class TaskQueueItemContext {
   };
 
   addTask = (key: string, props: any): Promise<string> => {
-    return this.taskQueue.add(key, props);
+    return this.queue.add(key, props);
   };
 }
