@@ -1,26 +1,23 @@
 {
   "name": "kew",
-  "version": "0.4.0-beta.0",
+  "version": "0.4.0-beta.2",
   "description": "A typed task queue with a simple API",
   "main": "dist/index.js",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "prettier": "prettier --write .",
-    "test:prettier": "prettier --check .",
+    "build": "pnpm run --recursive build",
+    "prettier": "pnpm run --recursive prettier && prettier --write .",
+    "test": "pnpm run --recursive test && prettier --check .",
+    "test:prettier": "pnpm run --recursive test:prettier && prettier --check .",
+    "test:tsc": "pnpm run --recursive test:tsc",
     "pub:dry": "pnpm publish --recursive --access public --dry-run",
     "pub": "pnpm publish --recursive --access public"
   },
-  "dependencies": {
-    "prettier": "2.7.1",
-    "typescript": "4.3.5"
-  },
   "devDependencies": {
-    "@react-native-async-storage/async-storage": "1.15.5",
-    "@types/uuid": "8.3.1",
-    "ts-node": "10.2.1"
-  },
-  "peerDependencies": {
-    "@react-native-async-storage/async-storage": "1.15.5"
+    "typescript": "4.3.5",
+    "esbuild": "0.15.13",
+    "esbuild-register": "3.4.1",
+    "prettier": "2.8.0"
   }
 }

@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["./src"],
+  "compilerOptions": {
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "composite": true,
+    "moduleResolution": "node",
+    "rootDir": "src",
+    "outDir": "lib"
+  }
+}

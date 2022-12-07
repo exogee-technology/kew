@@ -1,6 +1,6 @@
-import { TaskQueueStorageManager } from "./task-queue-storage";
+import { TaskQueueStorageManager } from "./storage";
 import {
-  TaskQueueItem,
+  Task,
   TaskQueueEventEmitter,
   TaskQueueEventEmitterFilter,
   TaskQueueEventEmitterCallback,
@@ -8,11 +8,11 @@ import {
 } from "./types";
 
 /** Task Queue Event Emitter Manager */
-export class TaskQueueEventEmitterManager<TH, TR> {
-  protected storageManager: TaskQueueStorageManager<TH, TR>;
-  protected listeners: TaskQueueEventEmitter<TH, TR>[] = [];
+export class TaskQueueEventEmitterManager {
+  protected storageManager: TaskQueueStorageManager;
+  protected listeners: TaskQueueEventEmitter[] = [];
 
-  constructor(storageManager: TaskQueueStorageManager<TH, TR>) {
+  constructor(storageManager: TaskQueueStorageManager) {
     this.storageManager = storageManager;
   }
 
@@ -22,8 +22,8 @@ export class TaskQueueEventEmitterManager<TH, TR> {
    * @param filter
    */
   add(
-    callback: TaskQueueEventEmitterCallback<TH, TR>,
-    filter: TaskQueueEventEmitterFilter<TH, TR>
+    callback: TaskQueueEventEmitterCallback,
+    filter: TaskQueueEventEmitterFilter
   ): TaskQueueEventEmitterSubscription {
     this.listeners.push({
       filter,
@@ -38,7 +38,7 @@ export class TaskQueueEventEmitterManager<TH, TR> {
    * Remove a listener from the manager
    * @param callback
    */
-  remove(callback: TaskQueueEventEmitterCallback<TH, TR>): void {
+  remove(callback: TaskQueueEventEmitterCallback): void {
     this.listeners = this.listeners.filter(
       (listener) => listener.callback === callback
     );
@@ -48,7 +48,7 @@ export class TaskQueueEventEmitterManager<TH, TR> {
    * Call all registered task event listeners for a given task
    * @param task
    */
-  call(task: TaskQueueItem<unknown, TH, TR>): void {
+  call(task: Task): void {
     for (const listener of this.listeners) {
       if (listener.filter(task)) listener.callback(task);
     }

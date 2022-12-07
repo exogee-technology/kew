@@ -1,20 +1,19 @@
 {
   "name": "@exogee/kew-example",
-  "version": "0.4.0-beta.0",
+  "version": "0.4.0-beta.2",
   "description": "An example project that demonstrates use of @exogee/kew",
   "bin": "bin/index.js",
   "source": "src/index.ts",
   "license": "MIT",
   "scripts": {
-    "start": "pnpm build && node bin/index.mjs",
-    "build": "esbuild src/index.ts --outfile=bin/index.js --bundle --platform=node --banner:js=\"#!/usr/bin/env node\""
+    "start": "pnpm build && ./bin/index.js",
+    "build": "esbuild src/index.ts --outfile=bin/index.js --bundle --platform=node --banner:js=\"#!/usr/bin/env node\"",
+    "prettier": "prettier --write .",
+    "test": "pnpm test:prettier && pnpm test:tsc",
+    "test:prettier": "prettier --check .",
+    "test:tsc": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@exogee/kew": "workspace:0.4.0"
-  },
-  "devDependencies": {
-    "esbuild": "0.15.13",
-    "typescript": "4.3.5",
-    "esbuild-register": "3.4.1"
+    "@exogee/kew": "workspace:0.4.0-beta.2"
   }
 }

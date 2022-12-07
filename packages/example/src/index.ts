@@ -1,22 +1,22 @@
 // index.ts
-import { createTaskQueue, TaskQueueItemStatus } from "@exogee/kew";
+import { createTaskQueue, TaskStatus } from "@exogee/kew";
 import { ReverseMessage, reverseMessage } from "./reverse-message";
 
-// Define the data types for handlers
-interface TaskHandlers {
+// Define the action types
+interface Actions {
   ReverseMessage: ReverseMessage;
 }
 
 // Create a new typed queue
-const queue = createTaskQueue<TaskHandlers>({
-  handlers: [reverseMessage],
+const queue = createTaskQueue({
+  actions: [reverseMessage],
 });
 
 // Register an event listener
 queue.on(
-  (task) => task.status === TaskQueueItemStatus.FINISHED,
-  ({ data }) => {
-    console.log("Task completed: ", data);
+  (task) => task.status === TaskStatus.FINISHED,
+  ({ props }) => {
+    console.log("Task completed: ", props);
     queue.stop();
   }
 );

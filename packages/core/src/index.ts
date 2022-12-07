@@ -1,2 +1,2 @@
-export * from "./task-queue";
+export * from "./queue";
 export * from "./types";
