@@ -1,51 +1,63 @@
 import {
   MapOfActions,
-  TaskQueueEventEmitterCallback,
-  TaskQueueEventEmitterFilter,
-  TaskQueueEventEmitterSubscription,
+  EventCallback,
+  EventFilter,
+  EventSubscription,
   Action,
-  TaskQueueInterface,
-  TaskQueuePlugin,
+  QueueInterface,
+  PlatformInterface,
   TaskStatus,
-  KewReducerOptions,
+  ReducerOptions,
 } from "./types";
 
-import { TaskQueueStorageManager } from "./storage";
-import { TaskQueueItemContext } from "./context";
-import { TaskQueueEventEmitterManager } from "./event-emitter";
+import { PlatformManager } from "./platform";
+import { Context } from "./context";
+import { EventManager } from "./event";
 import { createInitialTask, isSerializable, sleep } from "./util";
 
-export interface TaskQueueCreateOptions {
-  plugins?: TaskQueuePlugin[];
-  actions?: Action[];
+export enum Logging {
+  NONE,
+  DEBUG,
 }
 
-/** Convenience helper to create a new task queue with plugins and actions */
-export const createTaskQueue = ({
-  plugins,
-  actions,
-}: TaskQueueCreateOptions) => {
-  const queue = new TaskQueue();
-  plugins && queue.plugins(...plugins);
-  actions && queue.addActions(...actions);
-  return queue;
-};
+export interface QueueOptions {
+  platform?: PlatformInterface;
+  actions?: Action[];
+  logging?: Logging;
+}
 
 /**
  * kew Queue Implementation
  * TActions: Actions interface
  * */
-export class TaskQueue implements TaskQueueInterface {
+export class Queue implements QueueInterface {
   protected actions: MapOfActions = {};
-  protected storageManager = new TaskQueueStorageManager();
-  protected listenerManager = new TaskQueueEventEmitterManager(
-    this.storageManager
-  );
+  protected platformManager: PlatformManager;
+  protected eventManager: EventManager;
   protected isRunning = false;
   protected isPaused = false;
+  protected logging: Logging = Logging.NONE;
+
+  constructor({ platform, actions, logging }: QueueOptions) {
+    this.platformManager = new PlatformManager(platform);
+    this.eventManager = new EventManager();
+
+    if (Array.isArray(actions)) {
+      for (const action of actions) {
+        const key = action.key();
+        this.actions[key] = action;
+      }
+    }
+
+    if (logging) this.logging = logging;
+  }
 
   protected log(message: string, data?: any) {
-    console.log("kew: ", message, data);
+    if (data) {
+      console.log("[kew]", message, data);
+    } else {
+      console.log("[kew]", message);
+    }
   }
 
   public onQueueStopped: ((reason: string) => void) | undefined = undefined;
@@ -71,25 +83,14 @@ export class TaskQueue implements TaskQueueInterface {
     if (action.create)
       await action.create(
         task.props,
-        new TaskQueueItemContext(
-          this.storageManager,
-          this.listenerManager,
-          this,
-          task
-        )
+        new Context(this.platformManager, this.eventManager, this, task)
       );
 
     // Run the task with task data and context
     task.status = TaskStatus.IN_PROGRESS;
     await action.run(
       task.props,
-      new TaskQueueItemContext(
-        this.storageManager,
-        this.listenerManager,
-        this,
-        task,
-        true
-      )
+      new Context(this.platformManager, this.eventManager, this, task, true)
     );
 
     // Return the task props at the end
@@ -117,26 +118,21 @@ export class TaskQueue implements TaskQueueInterface {
     const task = createInitialTask(key, action.metadata?.(props), props);
 
     // Push task on to the queue
-    this.storageManager.currentTasks.push(task);
+    this.platformManager.currentTasks.push(task);
     this.log(`Task ${task.id} added to queue`);
 
     // If the handler has a create method, run it to prepare the queue item
     if (action.create)
       await action.create(
         task.props,
-        new TaskQueueItemContext(
-          this.storageManager,
-          this.listenerManager,
-          this,
-          task
-        )
+        new Context(this.platformManager, this.eventManager, this, task)
       );
 
     // Persist to storage
-    await this.storageManager.sync();
+    await this.platformManager.sync();
 
     // Call event listeners
-    this.listenerManager.call(task);
+    this.eventManager.call(task);
 
     // Return the generated task ID
     return task.id;
@@ -151,7 +147,7 @@ export class TaskQueue implements TaskQueueInterface {
 
     while (this.isRunning) {
       // Pull in the next task and update status
-      const [nextTask] = this.storageManager.currentTasks;
+      const [nextTask] = this.platformManager.currentTasks;
 
       // If no tasks in the queue, or the queue is paused, sleep for a short moment
       if (!nextTask || this.isPaused) {
@@ -170,19 +166,14 @@ export class TaskQueue implements TaskQueueInterface {
 
         await action.run(
           nextTask.props,
-          new TaskQueueItemContext(
-            this.storageManager,
-            this.listenerManager,
-            this,
-            nextTask
-          )
+          new Context(this.platformManager, this.eventManager, this, nextTask)
         );
 
         // If we got here, the task completed with success
         nextTask.status = TaskStatus.FINISHED;
         nextTask.finishedAt = Date.now();
-        this.storageManager.finishedTasks.push(nextTask);
-        this.storageManager.currentTasks.shift();
+        this.platformManager.finishedTasks.push(nextTask);
+        this.platformManager.currentTasks.shift();
       } catch (e) {
         nextTask.lastMessage = e.message;
 
@@ -203,10 +194,10 @@ export class TaskQueue implements TaskQueueInterface {
       }
 
       // Persist queue
-      await this.storageManager.sync();
+      await this.platformManager.sync();
 
       // Call event listeners
-      this.listenerManager.call(nextTask);
+      this.eventManager.call(nextTask);
     }
   }
 
@@ -231,15 +222,15 @@ export class TaskQueue implements TaskQueueInterface {
    * @param opts: Reducer Options
    */
   async reducer(
-    key: string,
+    reducerKey: string,
     initialValue?: any,
-    opts?: KewReducerOptions
+    options?: ReducerOptions
   ): Promise<any> {
     let accumulator = initialValue;
 
-    for (const task of this.storageManager.currentTasks) {
+    for (const task of this.platformManager.currentTasks) {
       // Check that an action exists for this key
-      const reducer = this.actions[task.key]?.reducers?.[key];
+      const reducer = this.actions[task.key]?.reducers?.[reducerKey];
 
       // If no reducer found, continue
       if (!reducer) continue;
@@ -248,39 +239,10 @@ export class TaskQueue implements TaskQueueInterface {
       accumulator = await reducer(
         accumulator,
         task.props,
-        new TaskQueueItemContext(
-          this.storageManager,
-          this.listenerManager,
-          this,
-          task
-        )
+        new Context(this.platformManager, this.eventManager, this, task)
       );
     }
     return accumulator;
-  }
-
-  /**
-   * Attach a new plugin to the queue
-   * @param plugins - One or more plugins
-   */
-  plugins(...plugins: TaskQueuePlugin[]) {
-    for (const plugin of plugins) {
-      (async () => {
-        if (plugin.storage) await this.storageManager.use(plugin.storage);
-      })();
-    }
-  }
-
-  /**
-   * Register one or more new actions
-   * @param actions: One or more actions
-   */
-  addActions(...actions: Action[]) {
-    for (const action of actions) {
-      const key = action.key();
-      // @ts-ignore @todo
-      this.actions[key] = action;
-    }
   }
 
   /**
@@ -289,23 +251,20 @@ export class TaskQueue implements TaskQueueInterface {
    * @param filter - A filter to use on the task.
    * @param callback - A method that is called when the listener condition is triggered
    */
-  on(
-    filter: TaskQueueEventEmitterFilter,
-    callback: TaskQueueEventEmitterCallback
-  ): TaskQueueEventEmitterSubscription {
-    return this.listenerManager.add(callback, filter);
+  on(filter: EventFilter, callback: EventCallback): EventSubscription {
+    return this.eventManager.add(callback, filter);
   }
 
   /** Get all tasks */
   tasks() {
     return [
-      ...this.storageManager.finishedTasks,
-      ...this.storageManager.currentTasks,
+      ...this.platformManager.finishedTasks,
+      ...this.platformManager.currentTasks,
     ];
   }
 
   /** Clear queue */
   async clear() {
-    await this.storageManager.removeAll();
+    await this.platformManager.removeAll();
   }
 }

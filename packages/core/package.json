@@ -9,16 +9,19 @@
     }
   },
   "source": "./src/index.ts",
-  "types": "./lib/src/index.d.ts",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "build": "pnpm build:esm && pnpm build:cjs && pnpm build:types",
     "build:esm": "esbuild src/index.ts --outfile=lib/index.mjs --bundle --format=esm",
     "build:cjs": "esbuild src/index.ts --outfile=lib/index.cjs --bundle --format=cjs",
-    "build:types": "tsc --outDir lib --declaration --emitDeclarationOnly",
+    "build:types": "tsc",
     "prettier": "prettier --write .",
     "test": "pnpm test:prettier && pnpm test:tsc",
     "test:prettier": "prettier --check .",
     "test:tsc": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "devDependencies": {
+    "typescript": "4.3.5"
   },
   "license": "MIT"
 }

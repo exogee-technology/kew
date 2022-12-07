@@ -1,30 +1,21 @@
-import { TaskQueueStorageManager } from "./storage";
 import {
   Task,
-  TaskQueueEventEmitter,
-  TaskQueueEventEmitterFilter,
-  TaskQueueEventEmitterCallback,
-  TaskQueueEventEmitterSubscription,
+  EventListener,
+  EventFilter,
+  EventCallback,
+  EventSubscription,
 } from "./types";
 
 /** Task Queue Event Emitter Manager */
-export class TaskQueueEventEmitterManager {
-  protected storageManager: TaskQueueStorageManager;
-  protected listeners: TaskQueueEventEmitter[] = [];
-
-  constructor(storageManager: TaskQueueStorageManager) {
-    this.storageManager = storageManager;
-  }
+export class EventManager {
+  protected listeners: EventListener[] = [];
 
   /**
    * Add a listener to the manager
    * @param callback
    * @param filter
    */
-  add(
-    callback: TaskQueueEventEmitterCallback,
-    filter: TaskQueueEventEmitterFilter
-  ): TaskQueueEventEmitterSubscription {
+  add(callback: EventCallback, filter: EventFilter): EventSubscription {
     this.listeners.push({
       filter,
       callback,
@@ -38,7 +29,7 @@ export class TaskQueueEventEmitterManager {
    * Remove a listener from the manager
    * @param callback
    */
-  remove(callback: TaskQueueEventEmitterCallback): void {
+  remove(callback: EventCallback): void {
     this.listeners = this.listeners.filter(
       (listener) => listener.callback === callback
     );
