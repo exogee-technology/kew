@@ -1,7 +1,7 @@
 import { TaskQueueItem } from "./types";
-import { TaskQueueStorageManager } from "./task-queue-storage";
-import { TaskQueueEventEmitterManager } from "./task-queue-event-emitter";
-import { TaskQueue } from "./task-queue";
+import { TaskQueueStorageManager } from "./storage";
+import { TaskQueueEventEmitterManager } from "./event-emitter";
+import { TaskQueue } from "./queue";
 
 /** Task Queue Item Context Manager */
 export class TaskQueueItemContext<T, TH, TR> {

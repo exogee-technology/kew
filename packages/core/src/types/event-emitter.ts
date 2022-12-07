@@ -1,4 +1,4 @@
-import { TaskQueueItem } from "./task-queue-item";
+import { TaskQueueItem } from "./item";
 
 export type TaskQueueEventEmitterFilter<TH, TR> = (
   task: TaskQueueItem<unknown, TH, TR>

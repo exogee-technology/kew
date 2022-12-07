@@ -1,4 +1,4 @@
-import { TaskQueueItem } from "./task-queue-item";
+import { TaskQueueItem } from "./item";
 
 export interface TaskQueueItemContext<T, TH, TR> {
   setProgress(progress: number): Promise<void>;

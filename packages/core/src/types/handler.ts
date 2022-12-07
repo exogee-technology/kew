@@ -1,4 +1,4 @@
-import { TaskQueueItemContext } from "./task-queue-item-context";
+import { TaskQueueItemContext } from "./context";
 
 export interface TaskQueueHandlerInfo {
   name?: string;

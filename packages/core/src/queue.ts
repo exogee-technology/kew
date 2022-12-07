@@ -11,9 +11,9 @@ import {
   KewReducerOptions,
 } from "./types";
 
-import { TaskQueueStorageManager } from "./task-queue-storage";
-import { TaskQueueItemContext } from "./task-queue-item-context";
-import { TaskQueueEventEmitterManager } from "./task-queue-event-emitter";
+import { TaskQueueStorageManager } from "./storage";
+import { TaskQueueItemContext } from "./context";
+import { TaskQueueEventEmitterManager } from "./event-emitter";
 import { createInitialTask, isSerializable, sleep } from "./util";
 
 export interface TaskQueueCreateOptions<TH, TR> {

@@ -1,10 +1,10 @@
-import { TaskQueuePlugin } from "./task-queue-plugin";
+import { TaskQueuePlugin } from "./plugin";
 import {
   TaskQueueEventEmitterCallback,
   TaskQueueEventEmitterFilter,
   TaskQueueEventEmitterSubscription,
-} from "./task-queue-event-emitter";
-import { TaskQueueItem } from "./task-queue-item";
+} from "./event-emitter";
+import { TaskQueueItem } from "./item";
 
 export interface KewReducerOptions<T, TH, TR> {
   filter?: (item: TaskQueueItem<T, TH, TR>) => boolean;

@@ -1,4 +1,4 @@
-import { TaskQueueHandlerInfo } from "./task-queue-handler";
+import { TaskQueueHandlerInfo } from "./handler";
 
 /**
  * An individual task object.

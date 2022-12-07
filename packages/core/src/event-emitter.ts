@@ -1,4 +1,4 @@
-import { TaskQueueStorageManager } from "./task-queue-storage";
+import { TaskQueueStorageManager } from "./storage";
 import {
   TaskQueueItem,
   TaskQueueEventEmitter,
