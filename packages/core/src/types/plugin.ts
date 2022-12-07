@@ -6,7 +6,6 @@ export interface QueueStoragePlugin {
 export interface QueueStoragePluginData {
   currentTasks: any;
   finishedTasks: any;
-  references: any;
 }
 
 export interface TaskQueuePlugin {

@@ -1,20 +1,21 @@
-import { TaskQueueItem } from "./types";
+import { Task } from "./types";
 import { TaskQueueStorageManager } from "./storage";
 import { TaskQueueEventEmitterManager } from "./event-emitter";
 import { TaskQueue } from "./queue";
 
 /** Task Queue Item Context Manager */
-export class TaskQueueItemContext<T, TH, TR> {
-  task: TaskQueueItem<T, TH, TR>;
-  storageManager: TaskQueueStorageManager<TH, TR>;
-  eventEmitterManager: TaskQueueEventEmitterManager<TH, TR>;
-  taskQueue: TaskQueue<TH, TR>;
+export class TaskQueueItemContext {
+
+    task: Task;
+    storageManager: TaskQueueStorageManager;
+    eventEmitterManager: TaskQueueEventEmitterManager;
+    taskQueue: TaskQueue;
 
   constructor(
-    storageManager: TaskQueueStorageManager<TH, TR>,
-    eventEmitterManager: TaskQueueEventEmitterManager<TH, TR>,
-    taskQueue: TaskQueue<TH, TR>,
-    task: TaskQueueItem<T, TH, TR>,
+          storageManager: TaskQueueStorageManager,
+          eventEmitterManager: TaskQueueEventEmitterManager,
+          taskQueue: TaskQueue,
+          task: Task,
     private noEvents?: boolean
   ) {
     this.storageManager = storageManager;
@@ -23,34 +24,22 @@ export class TaskQueueItemContext<T, TH, TR> {
     this.task = task;
   }
 
-  // Update the task data
-  setTaskData = async (data: T): Promise<void> => {
-    this.task.data = { ...this.task.data, ...data };
+  // Update the props
+    setProps = async (props: any): Promise<void> => {
+    this.task.props = { ...this.task.props, ...props };
     if (!this.noEvents) this.eventEmitterManager.call(this.task);
     await this.storageManager.sync();
-  };
-
-  // Change the task progress
-  setProgress = async (progress: number): Promise<void> => {
-    this.task.progress = progress;
-    if (!this.noEvents) this.eventEmitterManager.call(this.task);
-    await this.storageManager.sync();
-  };
-
-  // Create a new unique ID
-  createId = (): string => {
-    return ""; // @todo removing this functionality
   };
 
   // Return the full raw task data
-  getRawTask = (): TaskQueueItem<T, TH, TR> => {
+    getRawTask = (): Task => {
     return { ...this.task };
   };
 
   addTask = (
-    key: Extract<keyof TH, string>,
-    data: TH[typeof key]
+    key: string,
+    props: any,
   ): Promise<string> => {
-    return this.taskQueue.add(key, data);
+      return this.taskQueue.add(key, props);
   };
 }

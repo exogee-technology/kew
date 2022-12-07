@@ -1,15 +1,16 @@
-import { TaskQueueItem } from "./item";
+import { Task } from "./task";
 
-export type TaskQueueEventEmitterFilter<TH, TR> = (
-  task: TaskQueueItem<unknown, TH, TR>
+export type TaskQueueEventEmitterFilter = (
+        task: Task
 ) => boolean;
-export type TaskQueueEventEmitterCallback<TH, TR> = (
-  task: TaskQueueItem<unknown, TH, TR>
+
+export type TaskQueueEventEmitterCallback = (
+        task: Task
 ) => void;
 
-export interface TaskQueueEventEmitter<TH, TR> {
-  callback: TaskQueueEventEmitterCallback<TH, TR>;
-  filter: TaskQueueEventEmitterFilter<TH, TR>;
+export interface TaskQueueEventEmitter {
+    callback: TaskQueueEventEmitterCallback;
+    filter: TaskQueueEventEmitterFilter;
 }
 
 export interface TaskQueueEventEmitterSubscription {

@@ -1,7 +1,7 @@
 import {
-  TaskQueueHandlerInfo,
-  TaskQueueItem,
-  TaskQueueItemStatus,
+  ActionMetadata,
+  Task,
+  TaskStatus,
 } from "./types";
 
 const uniqueId = () => Math.floor(Math.random() * Date.now()).toString();
@@ -18,17 +18,16 @@ export const isSerializable = (data: any): boolean => {
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-export const createInitialTask = <TH, TR>(
-  key: Extract<keyof TH, string>,
-  info: TaskQueueHandlerInfo,
-  data: TH[typeof key]
-): TaskQueueItem<TH[typeof key], TH, TR> => {
+export const createInitialTask = (
+  key: string,
+  metadata: ActionMetadata = {},
+  props: any = {},
+): Task => {
   return {
-    // @ts-ignore @todo
     key,
-    data,
-    info,
-    status: TaskQueueItemStatus.QUEUED,
+    props,
+    metadata,
+    status: TaskStatus.QUEUED,
     id: uniqueId(),
     submittedAt: Date.now(),
     progress: 0,

@@ -4,30 +4,43 @@ import {
   TaskQueueEventEmitterFilter,
   TaskQueueEventEmitterSubscription,
 } from "./event-emitter";
-import { TaskQueueItem } from "./item";
+import { Task } from "./task";
+import { Action } from "./action";
 
-export interface KewReducerOptions<T, TH, TR> {
-  filter?: (item: TaskQueueItem<T, TH, TR>) => boolean;
+export interface KewReducerOptions {
+    filter?: (task: Task) => boolean;
 }
 
-export interface TaskQueueInterface<TH, TR> {
+export interface TaskQueueInterface {
+
   run(
-    key: Extract<keyof TH, string>,
-    data?: TH[typeof key]
-  ): Promise<TH[typeof key] | undefined>;
-  add(key: Extract<keyof TH, string>, data?: TH[typeof key]): Promise<string>;
+          key: string,
+          props?: any
+          ): Promise<any>;
+
+  add(key: string, props: any): Promise<string>;
+
   start(): Promise<void>;
+
   stop(): void;
+
   reducer(
-    key: Extract<keyof TR, string>,
-    initialValue?: TR[typeof key],
-    options?: KewReducerOptions<TR[typeof key], TH, TR>
-  ): Promise<TR[typeof key] | undefined>;
+    key: string,
+    initialValue?: any,
+    options?: KewReducerOptions,
+  ): Promise<any>;
+
+  addActions(...actions: Action[]): void;
+
   plugins(...plugins: TaskQueuePlugin[]): void;
+
   on(
-    filter: TaskQueueEventEmitterFilter<TH, TR>,
-    callback: TaskQueueEventEmitterCallback<TH, TR>
+          filter: TaskQueueEventEmitterFilter,
+          callback: TaskQueueEventEmitterCallback
   ): TaskQueueEventEmitterSubscription;
-  tasks(): TaskQueueItem<unknown, TH, TR>[];
+
+  tasks(): Task[];
+
   clear(): Promise<void>;
+
 }

@@ -1,10 +1,9 @@
-import { QueueStoragePlugin, Reference, TaskQueueItem } from "./types";
+import { QueueStoragePlugin, Task } from "./types";
 
 /** Task Queue Storage Manager */
-export class TaskQueueStorageManager<TH, TR> {
-  currentTasks: TaskQueueItem<any, TH, TR>[] = [];
-  finishedTasks: TaskQueueItem<any, TH, TR>[] = [];
-  references: { [key: string]: Reference<unknown> } = {};
+export class TaskQueueStorageManager {
+    currentTasks: Task[] = [];
+    finishedTasks: Task[] = [];
 
   protected storage: QueueStoragePlugin = {};
 
@@ -19,7 +18,6 @@ export class TaskQueueStorageManager<TH, TR> {
       await this.storage.sync({
         currentTasks: this.currentTasks,
         finishedTasks: this.finishedTasks,
-        references: this.references,
       });
     }
   }
@@ -37,10 +35,6 @@ export class TaskQueueStorageManager<TH, TR> {
         loaded?.finishedTasks && Array.isArray(loaded.finishedTasks)
           ? loaded.finishedTasks
           : [];
-      this.references =
-        loaded?.references && !Array.isArray(loaded.references)
-          ? loaded.references
-          : {};
     }
   }
 
@@ -48,7 +42,6 @@ export class TaskQueueStorageManager<TH, TR> {
   async removeAll() {
     this.currentTasks = [];
     this.finishedTasks = [];
-    this.references = {};
     await this.sync();
   }
 }

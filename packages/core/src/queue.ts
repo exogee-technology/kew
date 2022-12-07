@@ -1,13 +1,12 @@
 import {
-  TaskHandlerList,
+  MapOfActions,
   TaskQueueEventEmitterCallback,
   TaskQueueEventEmitterFilter,
   TaskQueueEventEmitterSubscription,
-  TaskQueueHandler,
+  Action,
   TaskQueueInterface,
   TaskQueuePlugin,
-  TaskQueueItemStatus,
-  TaskQueueHandlerKey,
+  TaskStatus,
   KewReducerOptions,
 } from "./types";
 
@@ -16,31 +15,30 @@ import { TaskQueueItemContext } from "./context";
 import { TaskQueueEventEmitterManager } from "./event-emitter";
 import { createInitialTask, isSerializable, sleep } from "./util";
 
-export interface TaskQueueCreateOptions<TH, TR> {
+export interface TaskQueueCreateOptions {
   plugins?: TaskQueuePlugin[];
-  handlers?: TaskQueueHandler<any>[];
+  actions?: Action[];
 }
 
-/** Convenience helper to create a new task queue with plugins and handlers */
-export const createTaskQueue = <TH = {}, TR = {}>({
+/** Convenience helper to create a new task queue with plugins and actions */
+export const createTaskQueue = ({
   plugins,
-  handlers,
-}: TaskQueueCreateOptions<TH, TR>) => {
-  const queue = new TaskQueue<TH, TR>();
+  actions,
+}: TaskQueueCreateOptions) => {
+  const queue = new TaskQueue();
   plugins && queue.plugins(...plugins);
-  handlers && queue.handlers(...handlers);
+  actions && queue.addActions(...actions);
   return queue;
 };
 
 /**
- * kew  Queue Implementation
- * TH: Task Queue Handlers interface
- * TR: Task Queue Reducers interface
+ * kew Queue Implementation
+ * TActions: Actions interface
  * */
-export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
-  protected taskHandlers: TaskHandlerList<TH, TR> = {};
-  protected storageManager = new TaskQueueStorageManager<TH, TR>();
-  protected listenerManager = new TaskQueueEventEmitterManager<TH, TR>(
+export class TaskQueue implements TaskQueueInterface {
+  protected actions: MapOfActions = {};
+  protected storageManager = new TaskQueueStorageManager();
+  protected listenerManager = new TaskQueueEventEmitterManager(
     this.storageManager
   );
   protected isRunning = false;
@@ -55,33 +53,32 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
 
   /**
    * Run a task immediately without adding to the queue
-   * @param key - A string that represents the type of task to perform.
-   * @param data - Any data items required by the task handler.
+   * @param key - The unique key of the action to perform.
+   * @param props - Any props required by the action.
    */
   async run(
-    key: TaskQueueHandlerKey<TH>,
-    data: TH[typeof key]
-  ): Promise<TH[typeof key] | undefined> {
-    // Check if a registered handler exists for this task type
-    const registeredHandler = this.taskHandlers[key];
-    if (!registeredHandler)
-      throw new Error(`No registered task queue handler with key '${key}'`);
+    key: string,
+    props: any,
+  ): Promise<any> {
+    // Check if an action exists with this key
+    const action = this.actions[key];
+    if (!action) throw new Error(`No action with key '${key}'`);
 
-    // If the handler has a validateTask method, run it to check the taskData
-    if (registeredHandler.validate) registeredHandler.validate(data);
+    // If the action has a validate method, run it to check the props
+    if (action.validate) action.validate(props);
 
     // Create task object
-    const task = createInitialTask<TH, TR>(
+    const task = createInitialTask(
       key,
-      registeredHandler.info(data),
-      data
+      action.metadata?.(props),
+      props
     );
 
-    // If the handler has a create method, run it to prepare the queue item
-    if (registeredHandler.create)
-      await registeredHandler.create(
-        task.data,
-        new TaskQueueItemContext<TH[typeof key], TH, TR>(
+    // If the action has a create method, run it to prepare the queue item
+    if (action.create)
+      await action.create(
+              task.props,
+        new TaskQueueItemContext(
           this.storageManager,
           this.listenerManager,
           this,
@@ -90,10 +87,10 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
       );
 
     // Run the task with task data and context
-    task.status = TaskQueueItemStatus.IN_PROGRESS;
-    await registeredHandler.run(
-      task.data,
-      new TaskQueueItemContext<TH[typeof key], TH, TR>(
+    task.status = TaskStatus.IN_PROGRESS;
+    await action.run(
+      task.props,
+      new TaskQueueItemContext(
         this.storageManager,
         this.listenerManager,
         this,
@@ -102,66 +99,58 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
       )
     );
 
-    // Return the task data at the end
-    return task.data;
+    // Return the task props at the end
+      return task.props;
   }
 
   /**
    * Add a new task to the queue.
-   * @param key - A string that represents the type of handler to use.
-   * @param data - Any data items required by the handler.
-   * @returns Promise<string> A Unique Task ID
+   * @param key - The unique key of the action to perform.
+   * @param props - Any props required by the action.
+   * @returns Promise<string> A unique task ID
    * */
   async add(
-    key: TaskQueueHandlerKey<TH>,
-    data: TH[typeof key]
+    key: string,
+    props: any
   ): Promise<string> {
-    // Check if a registered handler exists for this task type
-    const registeredHandler = this.taskHandlers[key];
-    if (!registeredHandler)
-      throw new Error(`No registered task queue handler with key '${key}'`);
-    this.log("A handler with this key does exist");
+    // Check if an action exists with this key
+    const action = this.actions[key];
+    if (!action) throw new Error(`No action with key '${key}'`);
 
     // Check that data is serializable
-    if (!isSerializable(data)) throw new Error("Data must be serializable");
-    this.log("Data is serializable");
+    if (!isSerializable(props)) throw new Error("Data must be serializable");
 
-    // If the handler has a validate method, run it to check the taskData
-    if (registeredHandler.validate) registeredHandler.validate(data);
-    this.log("Data validated OK");
+    // If the action has a validate method, run it to check the props
+    if (action.validate) action.validate(props);
 
     // Create task object
-    const task = createInitialTask<TH, TR>(
+    const task = createInitialTask(
       key,
-      registeredHandler.info(data),
-      data
+      action.metadata?.(props),
+      props
     );
-    this.log("Task created", task);
 
     // Push task on to the queue
     this.storageManager.currentTasks.push(task);
-    this.log("Task added to queue");
+    this.log(`Task ${task.id} added to queue`);
 
     // If the handler has a create method, run it to prepare the queue item
-    if (registeredHandler.create)
-      await registeredHandler.create(
-        data,
-        new TaskQueueItemContext<TH[typeof key], TH, TR>(
+    if (action.create)
+      await action.create(
+              task.props,
+        new TaskQueueItemContext(
           this.storageManager,
           this.listenerManager,
           this,
           task
         )
       );
-    this.log("Task prepared");
 
     // Persist to storage
     await this.storageManager.sync();
-    this.log("Storage synced");
 
     // Call event listeners
     this.listenerManager.call(task);
-    this.log("Listeners called");
 
     // Return the generated task ID
     return task.id;
@@ -169,7 +158,7 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
 
   /** Run all tasks in the queue */
   async start(): Promise<void> {
-    if (this.isRunning) throw new Error("Task Queue is already running");
+    if (this.isRunning) throw new Error("Queue is already running");
     this.isRunning = true;
 
     this.onQueueStarted?.();
@@ -184,19 +173,17 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
         continue;
       }
 
-      nextTask.status = TaskQueueItemStatus.IN_PROGRESS;
+        nextTask.status = TaskStatus.IN_PROGRESS;
       nextTask.attempts++;
       if (!nextTask.startedAt) nextTask.startedAt = Date.now();
 
       try {
-        // Run the task with task data and context
-        if (!this.taskHandlers[nextTask.key])
-          throw new Error(
-            `No registered task queue handler with key '${nextTask.key}'`
-          );
+        // Run the action
+        let action = this.actions[nextTask.key];
+        if (!action) throw new Error(`No action with key '${nextTask.key}'`);
 
-        await this.taskHandlers[nextTask.key]?.run(
-          nextTask.data,
+        await action.run(
+          nextTask.props,
           new TaskQueueItemContext(
             this.storageManager,
             this.listenerManager,
@@ -206,7 +193,7 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
         );
 
         // If we got here, the task completed with success
-        nextTask.status = TaskQueueItemStatus.FINISHED;
+          nextTask.status = TaskStatus.FINISHED;
         nextTask.finishedAt = Date.now();
         this.storageManager.finishedTasks.push(nextTask);
         this.storageManager.currentTasks.shift();
@@ -218,13 +205,13 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
           const delay =
             (2 ^ nextTask.attempts) + Math.floor(Math.random() * 1000);
           await sleep(delay);
-          nextTask.status = TaskQueueItemStatus.QUEUED;
+          nextTask.status = TaskStatus.QUEUED;
         } else {
           // For permanent failure, unknown failures, and after three retries, stop the queue
           this.isRunning = false;
-          nextTask.status = TaskQueueItemStatus.FAILED;
+          nextTask.status = TaskStatus.FAILED;
           this.onQueueStopped?.(
-            `Failed on "${nextTask.info.name}" - ${nextTask.lastMessage}`
+            `Failed on "${nextTask.metadata.name}" - ${nextTask.lastMessage}`
           );
         }
       }
@@ -253,34 +240,35 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
 
   /**
    * Run a reducer over the queue
-   * @param key: A named reducer string, or a custom function to run over each task.
+   * @param key: A named reducer string.
    * @param initialValue: The initial value to use as the accumulator.
    * @param opts: Reducer Options
    */
   async reducer(
-    key: Extract<keyof TR, string>,
-    initialValue?: TR[typeof key],
-    opts?: KewReducerOptions<TR[typeof key], TH, TR>
-  ): Promise<TR[typeof key] | undefined> {
+    key: string,
+    initialValue?: any,
+    opts?: KewReducerOptions
+  ): Promise<any> {
     let accumulator = initialValue;
 
     for (const task of this.storageManager.currentTasks) {
-      // Check task has a taskType and registered handler
-      const registeredHandler = this.taskHandlers[task.key];
+      // Check that an action exists for this key
+      const reducer = this.actions[task.key]?.reducers?.[key];
+
+      // If no reducer found, continue
+      if (!reducer) continue;
 
       // Update the accumulator based on the reducers result.
-      if (registeredHandler?.reducers && registeredHandler.reducers[key]) {
-        accumulator = await registeredHandler.reducers[key](
-          accumulator,
-          task.data,
-          new TaskQueueItemContext(
-            this.storageManager,
-            this.listenerManager,
-            this,
-            task
-          )
-        );
-      }
+      accumulator = await reducer(
+        accumulator,
+        task.props,
+        new TaskQueueItemContext(
+          this.storageManager,
+          this.listenerManager,
+          this,
+          task
+        )
+      );
     }
     return accumulator;
   }
@@ -298,14 +286,14 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
   }
 
   /**
-   * Register a new task handler.
-   * @param handlers - One or more task handlers
+   * Register one or more new actions
+   * @param actions: One or more actions
    */
-  handlers(...handlers: TaskQueueHandler<any>[]) {
-    for (const handler of handlers) {
-      const key = handler.key();
+  addActions(...actions: Action[]) {
+    for (const action of actions) {
+      const key = action.key();
       // @ts-ignore @todo
-      this.taskHandlers[key] = handler;
+      this.actions[key] = action;
     }
   }
 
@@ -316,8 +304,8 @@ export class TaskQueue<TH = {}, TR = {}> implements TaskQueueInterface<TH, TR> {
    * @param callback - A method that is called when the listener condition is triggered
    */
   on(
-    filter: TaskQueueEventEmitterFilter<TH, TR>,
-    callback: TaskQueueEventEmitterCallback<TH, TR>
+    filter: TaskQueueEventEmitterFilter,
+    callback: TaskQueueEventEmitterCallback
   ): TaskQueueEventEmitterSubscription {
     return this.listenerManager.add(callback, filter);
   }

@@ -1,12 +1,10 @@
-import { TaskQueueItem } from "./item";
+import { Task } from "./task";
 
-export interface TaskQueueItemContext<T, TH, TR> {
-  setProgress(progress: number): Promise<void>;
-  createId(): string;
-  setTaskData(taskData: Partial<T>): Promise<void>;
-  getRawTask(): TaskQueueItem<T, TH, TR>;
+export interface TaskQueueItemContext {
+  setProps(props: any): Promise<void>;
+  getRawTask(): Task;
   addTask(
-    key: Extract<keyof TH, string>,
-    data?: TH[typeof key]
+          key: string,
+          props?: any,
   ): Promise<string>;
 }
