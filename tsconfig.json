@@ -1,10 +1,10 @@
 {
-    "compilerOptions": {
-        "target": "esnext",
-        "strict": true,
-        "esModuleInterop": true,
-        "experimentalDecorators": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-    }
+  "compilerOptions": {
+    "target": "esnext",
+    "strict": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
 }
