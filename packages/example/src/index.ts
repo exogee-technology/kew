@@ -4,7 +4,7 @@ import { ReverseString } from "./reverse-string";
 
 // Create a new queue
 const queue = new Queue({
-    actions: [ReverseString],
+  actions: [ReverseString],
   logging: Logging.DEBUG,
 });
 
