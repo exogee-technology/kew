@@ -2,7 +2,7 @@ import { Action, Metadata, Reducer, Step } from "@exogee/kew";
 
 interface ReverseMessageProps {
   value: string;
-  timestamp?: string;
+  timestamp?: number;
 }
 
 @Metadata("ReverseString", {
@@ -14,8 +14,8 @@ export class ReverseString extends Action<ReverseMessageProps> {
     if (!this.props.value) throw new Error("Missing value");
   }
 
-  create(): ReverseMessageProps {
-      this.props.timestamp = Date.now();
+  async create() {
+    this.props.timestamp = Date.now();
   }
 
   @Step()
@@ -24,7 +24,7 @@ export class ReverseString extends Action<ReverseMessageProps> {
   }
 
   @Reducer("test")
-  test_reducer(acc) {
+  test_reducer(acc: any) {
     return !acc
       ? `Reversing ${this.props.value}`
       : `${acc} and ${this.props.value}`;

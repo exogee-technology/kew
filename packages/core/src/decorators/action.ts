@@ -2,37 +2,40 @@ import { ActionInterface, ActionInterfaceCtor, Task } from "../types";
 
 export const Step =
   (name?: string) =>
-  (target: ActionInterface<any>, _: string, descriptor: PropertyDescriptor) => {
-    Reflect.set(target, `_step_${name || 'start'}`, descriptor.value);
+  (target: ActionInterface<any>, name: string, descriptor: PropertyDescriptor) => {
+    Reflect.set(target, `_step_${name || "start"}`, descriptor.value);
   };
 
 export const Reducer =
   (key: string) =>
-  (target: ActionInterface<any>, _: string, descriptor: PropertyDescriptor) => {
+  (target: ActionInterface<any>, name: string, descriptor: PropertyDescriptor) => {
     Reflect.defineProperty(target, `_reducer_${key}`, descriptor);
   };
 
 interface MetadataOptions {
-    tags?: string[];
+  tags?: string[];
   friendlyName?: string;
 }
 
 export const Metadata =
-(key: string, options?: MetadataOptions) => (target: ActionInterfaceCtor<any>) => {
-
+  (key: string, options?: MetadataOptions) =>
+  (target: any) => {
     const tags = options?.tags ? () => options.tags! : () => [] as string[];
-    const name =options?.friendlyName ?  () => options.friendlyName! : () => "";
+    const name = options?.friendlyName ? () => options.friendlyName! : () => "";
 
-    target.key = key;
+    const newTarget = class newTarget extends target {
+      tags = tags;
+      name = name;
+    } as any;
 
-    return class newTarget extends target {
-        tags = tags;
-        name = name;
-    }
+    newTarget.key = key;
+
+    return newTarget;
+
   };
 
 export class Action<TProps extends Record<string, any>>
-implements ActionInterface<TProps>
+  implements ActionInterface<TProps>
 {
   constructor(readonly _task: Task<TProps>) {
     this.props = new Proxy(_task.props, {
@@ -50,18 +53,16 @@ implements ActionInterface<TProps>
   }
 
   public tags: () => string[] = () => [];
-  public name:  () => string = () => "";
+  public name: () => string = () => "";
 
   public validate() {
-    return undefined;
   }
 
-  public create() {
-    return undefined;
+  public async create() {
   }
 
   _step(name: string) {
-      return (this as any)[`_step_${name}`]?.bind(this);
+    return (this as any)[`_step_${name}`]?.bind(this);
   }
 
   _reducer(name: string) {

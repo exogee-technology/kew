@@ -14,11 +14,10 @@ export const isSerializable = (data: any): boolean => {
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-
 export const createInitialTask = (key: string, props: any): Task => {
   return {
     key,
-      props,
+    props,
     status: TaskStatus.QUEUED,
     id: uniqueId(),
     submittedAt: Date.now(),

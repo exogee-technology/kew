@@ -12,7 +12,7 @@ const queue = new Queue({
 queue.on(
   (task) => task.status === TaskStatus.FINISHED,
   (task) => {
-    console.log(`Task ${task.id} completed: ${task.props.message}`);
+    console.log(`Task ${task.id} completed: ${task.props.value}`);
     console.log(JSON.stringify(task));
     queue.stop();
   }

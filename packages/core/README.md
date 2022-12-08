@@ -10,7 +10,7 @@ A typed task queue with a simple API.
 
 ## Example
 
-```ts
+````ts
 // index.ts
 import { Queue, TaskStatus, Action } from "@exogee/kew";
 import { Platform } from "@exogee/kew-react-native-async-storage";
@@ -128,4 +128,4 @@ async sync(queue: QueueStorageData) {
     };
 
 export default AsyncStoragePlatform;
-```
+````

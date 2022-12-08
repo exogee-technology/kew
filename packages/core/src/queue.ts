@@ -2,7 +2,7 @@ import {
   EventCallback,
   EventFilter,
   EventSubscription,
-    ActionInterfaceCtor,
+  ActionInterfaceCtor,
   QueueInterface,
   PlatformInterface,
   TaskStatus,
@@ -42,7 +42,9 @@ export class Queue implements QueueInterface {
     this.eventManager = new EventManager();
 
     if (Array.isArray(actions)) {
-        for (const action of actions) this.actions[action.key] = action;
+        for (const action of actions) {
+            if (action.key) this.actions[action.key] = action;
+        }
     }
 
     if (logging) this.logging = logging;
@@ -71,25 +73,25 @@ export class Queue implements QueueInterface {
     if (!action) throw new Error(`No action with key '${key}'`);
 
     // Create task object
-      const task = createInitialTask(key, props);
+    const task = createInitialTask(key, props);
 
-      // Instantiate instance of the action
-      const actionInstance = new action(task);
+    // Instantiate instance of the action
+    const actionInstance = new action(task);
 
-      // Add tags
-      task.tags = actionInstance.tags();
-      task.name = actionInstance.name();
+    // Add tags
+    task.tags = actionInstance.tags();
+    task.name = actionInstance.name();
 
     // Validate props
-      actionInstance.validate();
+    actionInstance.validate();
 
     // Prepare the queue item
-      await actionInstance.create();
+    await actionInstance.create();
 
     // Run the task with task data and context
     task.status = TaskStatus.IN_PROGRESS;
 
-    await actionInstance._step('start')?.(
+    await actionInstance._step("start")?.(
       new Context(this.platformManager, this.eventManager, this, task, true)
     );
 
@@ -112,23 +114,21 @@ export class Queue implements QueueInterface {
     if (!action) throw new Error(`No action with key '${key}'`);
 
     // Create task object
-      const task = createInitialTask(key, props);
+    const task = createInitialTask(key, props);
 
     // Instantiate instance of the action
-      const actionInstance = new action(task);
+    const actionInstance = new action(task);
 
-
-      // Add tags
-      task.tags = actionInstance.tags();
-      task.name = actionInstance.name();
-
+    // Add tags
+    task.tags = actionInstance.tags();
+    task.name = actionInstance.name();
 
     // Check that data is serializable
     if (!isSerializable(props)) throw new Error("Data must be serializable");
 
     // If the action has a validate method, run it to check the props
-      actionInstance.validate();
-      await actionInstance.create();
+    actionInstance.validate();
+    await actionInstance.create();
 
     // Push task on to the queue
     this.platformManager.currentTasks.push(task);
@@ -174,7 +174,7 @@ export class Queue implements QueueInterface {
 
         const actionInstance = new action(nextTask);
 
-        await actionInstance._step('start')?.(
+        await actionInstance._step("start")?.(
           new Context(
             this.platformManager,
             this.eventManager,
