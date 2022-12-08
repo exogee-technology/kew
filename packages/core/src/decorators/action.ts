@@ -1,33 +1,15 @@
 import { ActionInterface, ActionCtorInterface, Task } from "../types";
 
-export const Validate =
-  () =>
-  (
-    target: ActionInterface<any>,
-    method: (props: any) => Record<keyof typeof props, string> | undefined
-  ) => {
-    target._validate = method;
-  };
-
 export const Start =
   () =>
-  (target: ActionInterface<any>, _: string, method: PropertyDescriptor) => {
-    Object.defineProperties(target, {
-      _start: method,
-    });
-  };
-
-export const Create =
-  () =>
-  (target: ActionInterface<any>, method: (props: any) => typeof props) => {
-    target._create = method;
+  (target: ActionInterface<any>, _: string, descriptor: PropertyDescriptor) => {
+    Reflect.set(target, "_start", descriptor.value);
   };
 
 export const Reducer =
   (key: string) =>
-  (target: ActionInterface<any>, method: (acc: any, props: any) => any) => {
-    if (!target._reducers) target._reducers = {};
-    target._reducers[key] = method;
+  (target: ActionInterface<any>, _: string, descriptor: PropertyDescriptor) => {
+    Reflect.defineProperty(target, `_reducer_${key}`, descriptor);
   };
 
 interface MetadataOptions {
@@ -76,7 +58,7 @@ export class Action<TProps extends Record<string, any>>
 
   public static _key: "";
 
-  public _tags() {
+  public static _tags() {
     return [];
   }
 
@@ -92,10 +74,10 @@ export class Action<TProps extends Record<string, any>>
     return props;
   }
 
-  public static _reducers = {};
-
-  public _start() {
-    console.error("No Start Defined");
+  _start() {}
+    
+  _reducer(name: string) {
+    return (this as any)[`_reducer_${name}`]?.bind(this);
   }
 
   props: TProps;

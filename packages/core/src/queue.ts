@@ -243,7 +243,11 @@ export class Queue implements QueueInterface {
 
     for (const task of this.platformManager.currentTasks) {
       // Check that an action exists for this key
-      const reducer = this.actions[task.key]?._reducers?.[reducerKey];
+      const action = this.actions[task.key];
+      if (!action) continue;
+
+      const actionInstance = new action(task);
+      const reducer = actionInstance._reducer(reducerKey);
 
       // If no reducer found, continue
       if (!reducer) continue;
@@ -251,7 +255,6 @@ export class Queue implements QueueInterface {
       // Update the accumulator based on the reducers result.
       accumulator = await reducer(
         accumulator,
-        task.props,
         new Context(this.platformManager, this.eventManager, this, task)
       );
     }

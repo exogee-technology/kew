@@ -1,10 +1,10 @@
 // index.ts
 import { Queue, TaskStatus, Logging } from "@exogee/kew";
-import { ReverseMessage } from "./reverse-message";
+import { ReverseString } from "./reverse-string";
 
 // Create a new queue
 const queue = new Queue({
-  actions: [ReverseMessage],
+  actions: [ReverseString],
   logging: Logging.DEBUG,
 });
 
@@ -31,7 +31,12 @@ queue.on(
 
 (async () => {
   // Start queue
-  const id = await queue.add("ReverseMessage", { message: "!olleH" });
+  const id1 = await queue.add("ReverseString", { value: "olleH" });
+  const id2 = await queue.add("ReverseString", { value: "eybdooG" });
+
+  console.log("Run Reducer:");
+  console.log(await queue.reducer("test", ""));
+
   console.log("Starting Queue");
   await queue.start();
 })();

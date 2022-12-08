@@ -11,6 +11,7 @@
     "test": "pnpm run --recursive test && prettier --check .",
     "test:prettier": "pnpm run --recursive test:prettier && prettier --check .",
     "test:tsc": "pnpm run --recursive test:tsc",
+    "run-example": "pnpm start --filter '@exogee/kew-example'",
     "pub:dry": "pnpm publish --recursive --access public --dry-run",
     "pub": "pnpm publish --recursive --access public"
   },

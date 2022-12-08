@@ -16,16 +16,15 @@ import { Queue, TaskStatus, Action } from "@exogee/kew";
 import { Platform } from "@exogee/kew-react-native-async-storage";
 
 interface ReverseMessageProps {
-    value: string;
- }
+  value: string;
+}
 
 @Metadata("ReverseMessage")
 class ReverseMessage extends Action<ReverseMessageProps> {
-
-    @Start()
-    async start() {
-        this.props.value = this.props.value.split("").reverse().join("");
-    }
+  @Start()
+  async start() {
+    this.props.value = this.props.value.split("").reverse().join("");
+  }
 }
 
 // Create a new queue
@@ -45,7 +44,7 @@ queue.on(
 
 // Add task to the queue and start
 (async () => {
-    await queue.add("ReverseMessage", { value: "!olleH" });
+  await queue.add("ReverseMessage", { value: "!olleH" });
   await queue.start();
 })();
 ```
