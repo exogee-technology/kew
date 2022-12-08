@@ -5,7 +5,7 @@ A typed task queue with a simple API.
 - Create a _Queue_
 - Attach a _Platform_ for storage and data persistence.
 - Register one or more _Action_\ s to perform various types of tasks.
-- Actions are simple objects with lifecycle methods.
+- Actions are classes with lifecycle methods.
 - Add _Task_\ s to the _Queue_.
 
 ## Example
@@ -21,7 +21,7 @@ interface ReverseMessageProps {
 
 @Metadata("ReverseMessage")
 class ReverseMessage extends Action<ReverseMessageProps> {
-  @Start()
+  @Step()
   async start() {
     this.props.value = this.props.value.split("").reverse().join("");
   }

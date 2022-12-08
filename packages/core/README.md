@@ -5,7 +5,7 @@ A typed task queue with a simple API.
 - Create a _Queue_
 - Attach a _Platform_ for storage and data persistence.
 - Register one or more _Action_\ s to perform various types of tasks.
-- Actions are simple objects with lifecycle methods.
+- Actions are classes with lifecycle methods.
 - Add _Task_\ s to the _Queue_.
 
 ## Example
@@ -16,38 +16,38 @@ import { Queue, TaskStatus, Action } from "@exogee/kew";
 import { Platform } from "@exogee/kew-react-native-async-storage";
 
 interface ReverseMessageProps {
-  value: string;
-}
+    value: string;
+    }
 
 @Metadata("ReverseMessage")
 class ReverseMessage extends Action<ReverseMessageProps> {
-  @Start()
-  async start() {
-    this.props.value = this.props.value.split("").reverse().join("");
-  }
-}
+    @Step()
+    async start() {
+        this.props.value = this.props.value.split("").reverse().join("");
+        }
+        }
 
 // Create a new queue
 const queue = new Queue({
-  platform: new Platform("my_application_queue"),
-  actions: [ReverseMessage],
-});
+    platform: new Platform("my_application_queue"),
+    actions: [ReverseMessage],
+    });
 
 // Register an event listener
 queue.on(
-  (task) => task.status === TaskStatus.FINISHED,
-  ({ props }) => {
+(task) => task.status === TaskStatus.FINISHED,
+({ props }) => {
     console.log("Task completed: ", props.value);
     queue.stop();
-  }
-);
+    }
+    );
 
 // Add task to the queue and start
 (async () => {
-  await queue.add("ReverseMessage", { value: "!olleH" });
-  await queue.start();
-})();
-```
+    await queue.add("ReverseMessage", { value: "!olleH" });
+    await queue.start();
+    })();
+    ```
 
 See `@exogee/kew-example` for a more complex example
 
@@ -112,20 +112,20 @@ Remove all tasks from the queue
 
 ```ts
 const AsyncStoragePlatform: Platform = {
-  storage: {
-    // load is called when the queue data needs to be reloaded.
-    async load() {
-      return await AsyncStorage.getItem("TASK_QUEUE")
-        .then((tasksJSON) => callback(JSON.parse(tasksJSON)))
-        .catch(() => ({}));
-    },
+    storage: {
+        // load is called when the queue data needs to be reloaded.
+        async load() {
+            return await AsyncStorage.getItem("TASK_QUEUE")
+            .then((tasksJSON) => callback(JSON.parse(tasksJSON)))
+            .catch(() => ({}));
+            },
 
-    // sync is called with the new queue data whenever the queue is updated.
-    async sync(queue: QueueStorageData) {
-      await AsyncStorage.setItem("TASK_QUEUE", JSON.stringify(queue));
+// sync is called with the new queue data whenever the queue is updated.
+async sync(queue: QueueStorageData) {
+    await AsyncStorage.setItem("TASK_QUEUE", JSON.stringify(queue));
     },
-  },
-};
+    },
+    };
 
 export default AsyncStoragePlatform;
 ```
