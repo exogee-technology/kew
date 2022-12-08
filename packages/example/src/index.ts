@@ -1,23 +1,30 @@
 // index.ts
 import { Queue, TaskStatus, Logging } from "@exogee/kew";
-import { ReverseMessage, reverseMessage } from "./reverse-message";
-
-// Define the action types
-interface Actions {
-  ReverseMessage: ReverseMessage;
-}
+import { ReverseMessage } from "./reverse-message";
 
 // Create a new queue
 const queue = new Queue({
-  actions: [reverseMessage],
+  actions: [ReverseMessage],
   logging: Logging.DEBUG,
 });
 
 // Register an event listener
 queue.on(
   (task) => task.status === TaskStatus.FINISHED,
-  ({ id, props }) => {
-    console.log(`Task ${id} completed: ${props.message}`);
+  (task) => {
+    console.log(`Task ${task.id} completed: ${task.props.message}`);
+    console.log(JSON.stringify(task));
+
+    queue.stop();
+  }
+);
+
+// Register an event listener
+queue.on(
+  (task) => task.status === TaskStatus.FAILED,
+  (task) => {
+    console.log(`Task ${task.id} failed`);
+    console.log(JSON.stringify(task));
     queue.stop();
   }
 );

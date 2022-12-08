@@ -1,20 +1,21 @@
-import { ActionMetadata } from "./action";
 /**
  * An individual task object.
  * All fields must be serializable.
  */
-export interface Task {
+export interface Task<TProps = any> {
   id: string;
   key: string;
-  props: any;
+  props: TProps;
   status: TaskStatus;
-  progress: number;
   attempts: number;
   lastMessage?: string;
   submittedAt: number /** Submitted to queue timestamp */;
   startedAt?: number /** Started working on task timestamp */;
   finishedAt?: number /** Finished working on task timestamp */;
-  metadata: ActionMetadata;
+  metadata: {
+    tags: string[];
+    name: string;
+  };
 }
 
 /** The current status of a task */

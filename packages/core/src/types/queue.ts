@@ -1,6 +1,5 @@
 import { EventCallback, EventFilter, EventSubscription } from "./event";
 import { Task } from "./task";
-import { Action } from "./action";
 
 export interface ReducerOptions {
   filter: EventFilter;

@@ -15,17 +15,23 @@ A typed task queue with a simple API.
 import { Queue, TaskStatus, Action } from "@exogee/kew";
 import { Platform } from "@exogee/kew-react-native-async-storage";
 
-const reverseStringAction: Action = {
-  key: () => "ReverseString",
-  run: async ({ value }, { setProps }) => {
-    await setProps({ value: value.split("").reverse().join("") });
-  },
-};
+interface ReverseMessageProps {
+    value: string;
+ }
+
+@Metadata("ReverseMessage")
+class ReverseMessage extends Action<ReverseMessageProps> {
+
+    @Start()
+    async start() {
+        this.props.value = this.props.value.split("").reverse().join("");
+    }
+}
 
 // Create a new queue
 const queue = new Queue({
   platform: new Platform("my_application_queue"),
-  actions: [reverseStringAction],
+  actions: [ReverseMessage],
 });
 
 // Register an event listener
@@ -39,7 +45,7 @@ queue.on(
 
 // Add task to the queue and start
 (async () => {
-  await queue.add("ReverseString", { value: "!olleH" });
+    await queue.add("ReverseMessage", { value: "!olleH" });
   await queue.start();
 })();
 ```

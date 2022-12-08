@@ -1,30 +1,24 @@
-import { TaskQueueItemContext } from "./context";
+import { Context } from "./context";
+import { Task } from "./task";
 
-export interface ActionMetadata {
-  name?: string;
-  tags?: string[];
-}
-
-export interface Action {
-  key(): string;
-
-  metadata?(props: any): ActionMetadata;
-
-  validate?(props: any): void;
-
-  create?(props: any, context: TaskQueueItemContext): Promise<void>;
-
-  run(props: any, context: TaskQueueItemContext): Promise<void>;
-
-  reducers?: {
+export interface ActionInterface<TProps extends Record<string, any>> {
+  _key: string;
+  _tags(props: TProps): string[];
+  _name(props: TProps): string;
+  _validate(props: TProps): Record<keyof TProps, string> | undefined;
+  _create(props: TProps): TProps;
+  _reducers: {
     [key: string]: (
       accumulator: any,
       props: any,
-      context: TaskQueueItemContext
-    ) => Promise<any>;
+      context: Context<TProps>
+    ) => Promise<any> | any;
   };
+  new (props: TProps): ActionCtorInterface<TProps>;
 }
 
-export interface MapOfActions {
-  [key: string]: Action;
+export interface ActionCtorInterface<TProps> {
+  _start: (context: Context<TProps>) => Promise<void> | void;
+  _task: Task<TProps>;
+  props: TProps;
 }
