@@ -1,9 +1,8 @@
 import {
-  MapOfActions,
   EventCallback,
   EventFilter,
   EventSubscription,
-  Action,
+  ActionInterface,
   QueueInterface,
   PlatformInterface,
   TaskStatus,
@@ -22,7 +21,7 @@ export enum Logging {
 
 export interface QueueOptions {
   platform?: PlatformInterface;
-  actions?: Action[];
+  actions?: ActionInterface<any>[];
   logging?: Logging;
 }
 
@@ -31,7 +30,7 @@ export interface QueueOptions {
  * TActions: Actions interface
  * */
 export class Queue implements QueueInterface {
-  protected actions: MapOfActions = {};
+  protected actions: Record<string, ActionInterface<any>> = {};
   protected platformManager: PlatformManager;
   protected eventManager: EventManager;
   protected isRunning = false;
@@ -43,16 +42,14 @@ export class Queue implements QueueInterface {
     this.eventManager = new EventManager();
 
     if (Array.isArray(actions)) {
-      for (const action of actions) {
-        const key = action.key();
-        this.actions[key] = action;
-      }
+      for (const action of actions) this.actions[action._key] = action;
     }
 
     if (logging) this.logging = logging;
   }
 
-  protected log(message: string, data?: any) {
+  protected debugLog(message: string, data?: any) {
+    if (this.logging !== Logging.DEBUG) return;
     if (data) {
       console.log("[kew]", message, data);
     } else {
@@ -73,28 +70,32 @@ export class Queue implements QueueInterface {
     const action = this.actions[key];
     if (!action) throw new Error(`No action with key '${key}'`);
 
-    // If the action has a validate method, run it to check the props
-    if (action.validate) action.validate(props);
+    // Validate props
+    action._validate(props);
+
+    // Prepare the queue item
+    const prepared_props = await action._create(props);
 
     // Create task object
-    const task = createInitialTask(key, action.metadata?.(props), props);
-
-    // If the action has a create method, run it to prepare the queue item
-    if (action.create)
-      await action.create(
-        task.props,
-        new Context(this.platformManager, this.eventManager, this, task)
-      );
+    const task = createInitialTask({
+      key,
+      tags: action._tags(props),
+      name: action._name(props),
+      props: prepared_props,
+    });
 
     // Run the task with task data and context
     task.status = TaskStatus.IN_PROGRESS;
-    await action.run(
-      task.props,
+
+    // Instantiate instance of the action
+    const actionInstance = new action(task);
+
+    await actionInstance._start(
       new Context(this.platformManager, this.eventManager, this, task, true)
     );
 
     // Return the task props at the end
-    return task.props;
+    return actionInstance._task.props;
   }
 
   /**
@@ -112,21 +113,21 @@ export class Queue implements QueueInterface {
     if (!isSerializable(props)) throw new Error("Data must be serializable");
 
     // If the action has a validate method, run it to check the props
-    if (action.validate) action.validate(props);
+    action._validate(props);
+
+    const prepared_props = await action._create(props);
 
     // Create task object
-    const task = createInitialTask(key, action.metadata?.(props), props);
+    const task = createInitialTask({
+      key,
+      tags: action._tags(props),
+      name: action._name(props),
+      props: prepared_props,
+    });
 
     // Push task on to the queue
     this.platformManager.currentTasks.push(task);
-    this.log(`Task ${task.id} added to queue`);
-
-    // If the handler has a create method, run it to prepare the queue item
-    if (action.create)
-      await action.create(
-        task.props,
-        new Context(this.platformManager, this.eventManager, this, task)
-      );
+    this.debugLog(`Task ${task.id} added to queue`);
 
     // Persist to storage
     await this.platformManager.sync();
@@ -155,36 +156,48 @@ export class Queue implements QueueInterface {
         continue;
       }
 
+      this.debugLog(`Next task is ${nextTask.id}`);
+
       nextTask.status = TaskStatus.IN_PROGRESS;
       nextTask.attempts++;
       if (!nextTask.startedAt) nextTask.startedAt = Date.now();
 
       try {
         // Run the action
-        let action = this.actions[nextTask.key];
+        const action = this.actions[nextTask.key];
         if (!action) throw new Error(`No action with key '${nextTask.key}'`);
 
-        await action.run(
-          nextTask.props,
-          new Context(this.platformManager, this.eventManager, this, nextTask)
+        const actionInstance = new action(nextTask);
+
+        await actionInstance._start(
+          new Context(
+            this.platformManager,
+            this.eventManager,
+            this,
+            nextTask,
+            true
+          )
         );
 
         // If we got here, the task completed with success
         nextTask.status = TaskStatus.FINISHED;
         nextTask.finishedAt = Date.now();
+        nextTask.props = actionInstance._task.props;
+
         this.platformManager.finishedTasks.push(nextTask);
         this.platformManager.currentTasks.shift();
-      } catch (e) {
-        nextTask.lastMessage = e.message;
+      } catch (error) {
+        nextTask.lastMessage =
+          error instanceof Error ? error.message : String(error);
 
-        if (!e.fatalError && nextTask.attempts < 3) {
-          // For temporary failure, retry a few times with exponential backoff
+        if (nextTask.attempts < 3) {
+          // Retry a few times with exponential backoff
           const delay =
             (2 ^ nextTask.attempts) + Math.floor(Math.random() * 1000);
           await sleep(delay);
           nextTask.status = TaskStatus.QUEUED;
         } else {
-          // For permanent failure, unknown failures, and after three retries, stop the queue
+          //  After three retries, stop the queue
           this.isRunning = false;
           nextTask.status = TaskStatus.FAILED;
           this.onQueueStopped?.(
@@ -230,7 +243,7 @@ export class Queue implements QueueInterface {
 
     for (const task of this.platformManager.currentTasks) {
       // Check that an action exists for this key
-      const reducer = this.actions[task.key]?.reducers?.[reducerKey];
+      const reducer = this.actions[task.key]?._reducers?.[reducerKey];
 
       // If no reducer found, continue
       if (!reducer) continue;

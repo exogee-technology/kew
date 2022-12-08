@@ -1,22 +1,26 @@
-// SendMessage.ts
-import { Action } from "@exogee/kew";
+import { Action, Metadata, Validate, Reducer, Start } from "@exogee/kew";
 
-// Define the ReverseMessage Task Handler Event
-export interface ReverseMessage {
+interface ReverseMessageProps {
   message: string;
 }
 
-// Define the SendMessage Task Handler
-export const reverseMessage: Action = {
-  key: () => "ReverseMessage",
-  metadata: ({ message }) => ({
-    friendlyName: `Reverse Message: ${message}`,
-    tags: ["message"],
-  }),
-  validate: ({ message }) => {
+@Metadata("ReverseMessage", {
+  friendlyName: ({ message }) => `Reverse Message '${message}'`,
+  tags: ["message"],
+})
+export class ReverseMessage extends Action<ReverseMessageProps> {
+  @Validate()
+  validate({ message }) {
     if (!message) throw new Error("Missing Message");
-  },
-  run: async ({ message }, { setProps }) => {
-    await setProps({ message: message.split("").reverse().join("") });
-  },
-};
+  }
+
+  @Start()
+  async start() {
+    this.props.message = this.props.message.split("").reverse().join("");
+  }
+
+  @Reducer("test")
+  test_reducer() {
+    return this.props.message;
+  }
+}

@@ -1,4 +1,4 @@
-import { ActionMetadata, Task, TaskStatus } from "./types";
+import { Task, TaskStatus } from "./types";
 
 const uniqueId = () => Math.floor(Math.random() * Date.now()).toString();
 
@@ -14,19 +14,29 @@ export const isSerializable = (data: any): boolean => {
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-export const createInitialTask = (
-  key: string,
-  metadata: ActionMetadata = {},
-  props: any = {}
-): Task => {
+export interface CreateInitialTaskOptions {
+  key: string;
+  tags: string[];
+  name: string;
+  props: any;
+}
+
+export const createInitialTask = ({
+  key,
+  tags,
+  name,
+  props = {},
+}: CreateInitialTaskOptions): Task => {
   return {
     key,
     props,
-    metadata,
+    metadata: {
+      tags,
+      name,
+    },
     status: TaskStatus.QUEUED,
     id: uniqueId(),
     submittedAt: Date.now(),
-    progress: 0,
     attempts: 0,
   };
 };
