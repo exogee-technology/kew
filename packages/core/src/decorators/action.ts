@@ -75,7 +75,7 @@ export class Action<TProps extends Record<string, any>>
   }
 
   _start() {}
-    
+
   _reducer(name: string) {
     return (this as any)[`_reducer_${name}`]?.bind(this);
   }
