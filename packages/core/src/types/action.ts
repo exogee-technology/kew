@@ -7,7 +7,6 @@ export interface ActionInterface<TProps extends Record<string, any>> {
   _name(props: TProps): string;
   _validate(props: TProps): Record<keyof TProps, string> | undefined;
   _create(props: TProps): TProps;
-  _start: string;
   new (props: TProps): ActionCtorInterface<TProps>;
 }
 

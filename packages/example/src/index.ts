@@ -1,10 +1,10 @@
 // index.ts
 import { Queue, TaskStatus, Logging } from "@exogee/kew";
-import { ReverseMessage } from "./reverse-message";
+import { ReverseString } from "./reverse-string";
 
 // Create a new queue
 const queue = new Queue({
-  actions: [ReverseMessage],
+    actions: [ReverseString],
   logging: Logging.DEBUG,
 });
 
@@ -14,7 +14,6 @@ queue.on(
   (task) => {
     console.log(`Task ${task.id} completed: ${task.props.message}`);
     console.log(JSON.stringify(task));
-
     queue.stop();
   }
 );
