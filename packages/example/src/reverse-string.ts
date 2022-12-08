@@ -1,23 +1,24 @@
-import { Action, Metadata, Reducer, Start } from "@exogee/kew";
+import { Action, Metadata, Reducer, Step } from "@exogee/kew";
 
 interface ReverseMessageProps {
   value: string;
+  timestamp?: string;
 }
 
 @Metadata("ReverseString", {
-  friendlyName: ({ value }) => `Reverse the string '${value}'`,
+  friendlyName: "Reverse A String",
   tags: ["message"],
 })
 export class ReverseString extends Action<ReverseMessageProps> {
-  static validate({ value }) {
-    if (!value) throw new Error("Missing value");
+  validate() {
+    if (!this.props.value) throw new Error("Missing value");
   }
 
-  static create(props) {
-    return props;
+  create(): ReverseMessageProps {
+      this.props.timestamp = Date.now();
   }
 
-  @Start()
+  @Step("start")
   async start() {
     this.props.value = this.props.value.split("").reverse().join("");
   }

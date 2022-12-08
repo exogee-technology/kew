@@ -2,7 +2,7 @@ import {
   EventCallback,
   EventFilter,
   EventSubscription,
-  ActionInterface,
+    ActionInterfaceCtor,
   QueueInterface,
   PlatformInterface,
   TaskStatus,
@@ -21,7 +21,7 @@ export enum Logging {
 
 export interface QueueOptions {
   platform?: PlatformInterface;
-  actions?: ActionInterface<any>[];
+  actions?: ActionInterfaceCtor<any>[];
   logging?: Logging;
 }
 
@@ -30,7 +30,7 @@ export interface QueueOptions {
  * TActions: Actions interface
  * */
 export class Queue implements QueueInterface {
-  protected actions: Record<string, ActionInterface<any>> = {};
+  protected actions: Record<string, ActionInterfaceCtor<any>> = {};
   protected platformManager: PlatformManager;
   protected eventManager: EventManager;
   protected isRunning = false;
@@ -42,7 +42,7 @@ export class Queue implements QueueInterface {
     this.eventManager = new EventManager();
 
     if (Array.isArray(actions)) {
-      for (const action of actions) this.actions[action._key] = action;
+        for (const action of actions) this.actions[action.key] = action;
     }
 
     if (logging) this.logging = logging;
@@ -70,32 +70,34 @@ export class Queue implements QueueInterface {
     const action = this.actions[key];
     if (!action) throw new Error(`No action with key '${key}'`);
 
+    // Create task object
+      const task = createInitialTask(key, props);
+
+      // Instantiate instance of the action
+      const actionInstance = new action(task);
+
+      // Add tags
+      task.tags = actionInstance.tags();
+      task.name = actionInstance.name();
+
     // Validate props
-    action._validate(props);
+      actionInstance.validate();
 
     // Prepare the queue item
-    const prepared_props = await action._create(props);
-
-    // Create task object
-    const task = createInitialTask({
-      key,
-      tags: action._tags(props),
-      name: action._name(props),
-      props: prepared_props,
-    });
+      await actionInstance.create();
 
     // Run the task with task data and context
     task.status = TaskStatus.IN_PROGRESS;
 
-    // Instantiate instance of the action
-    const actionInstance = new action(task);
-
-    await actionInstance._start(
+    await actionInstance._step('start')?.(
       new Context(this.platformManager, this.eventManager, this, task, true)
     );
 
+    task.status = TaskStatus.FINISHED;
+    task.finishedAt = Date.now();
+
     // Return the task props at the end
-    return actionInstance._task.props;
+    return task.props;
   }
 
   /**
@@ -109,21 +111,24 @@ export class Queue implements QueueInterface {
     const action = this.actions[key];
     if (!action) throw new Error(`No action with key '${key}'`);
 
+    // Create task object
+      const task = createInitialTask(key, props);
+
+    // Instantiate instance of the action
+      const actionInstance = new action(task);
+
+
+      // Add tags
+      task.tags = actionInstance.tags();
+      task.name = actionInstance.name();
+
+
     // Check that data is serializable
     if (!isSerializable(props)) throw new Error("Data must be serializable");
 
     // If the action has a validate method, run it to check the props
-    action._validate(props);
-
-    const prepared_props = await action._create(props);
-
-    // Create task object
-    const task = createInitialTask({
-      key,
-      tags: action._tags(props),
-      name: action._name(props),
-      props: prepared_props,
-    });
+      actionInstance.validate();
+      await actionInstance.create();
 
     // Push task on to the queue
     this.platformManager.currentTasks.push(task);
@@ -169,7 +174,7 @@ export class Queue implements QueueInterface {
 
         const actionInstance = new action(nextTask);
 
-        await actionInstance._start(
+        await actionInstance._step('start')?.(
           new Context(
             this.platformManager,
             this.eventManager,
@@ -201,7 +206,7 @@ export class Queue implements QueueInterface {
           this.isRunning = false;
           nextTask.status = TaskStatus.FAILED;
           this.onQueueStopped?.(
-            `Failed on "${nextTask.metadata.name}" - ${nextTask.lastMessage}`
+            `Failed on "${nextTask.name}" - ${nextTask.lastMessage}`
           );
         }
       }

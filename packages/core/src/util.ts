@@ -6,7 +6,7 @@ export const isSerializable = (data: any): boolean => {
   try {
     JSON.stringify(data);
     return true;
-  } catch (e) {
+  } catch (_) {
     return false;
   }
 };
@@ -14,26 +14,11 @@ export const isSerializable = (data: any): boolean => {
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-export interface CreateInitialTaskOptions {
-  key: string;
-  tags: string[];
-  name: string;
-  props: any;
-}
 
-export const createInitialTask = ({
-  key,
-  tags,
-  name,
-  props = {},
-}: CreateInitialTaskOptions): Task => {
+export const createInitialTask = (key: string, props: any): Task => {
   return {
     key,
-    props,
-    metadata: {
-      tags,
-      name,
-    },
+      props,
     status: TaskStatus.QUEUED,
     id: uniqueId(),
     submittedAt: Date.now(),

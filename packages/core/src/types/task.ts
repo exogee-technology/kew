@@ -12,10 +12,8 @@ export interface Task<TProps = any> {
   submittedAt: number /** Submitted to queue timestamp */;
   startedAt?: number /** Started working on task timestamp */;
   finishedAt?: number /** Finished working on task timestamp */;
-  metadata: {
-    tags: string[];
-    name: string;
-  };
+    tags?: string[];
+    name?: string;
 }
 
 /** The current status of a task */

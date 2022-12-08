@@ -1,9 +1,9 @@
-import { ActionInterface, ActionCtorInterface, Task } from "../types";
+import { ActionInterface, ActionInterfaceCtor, Task } from "../types";
 
-export const Start =
-  () =>
+export const Step =
+  (name?: string) =>
   (target: ActionInterface<any>, _: string, descriptor: PropertyDescriptor) => {
-    Reflect.set(target, "_start", descriptor.value);
+    Reflect.set(target, `_step_${name || 'start'}`, descriptor.value);
   };
 
 export const Reducer =
@@ -13,33 +13,26 @@ export const Reducer =
   };
 
 interface MetadataOptions {
-  tags: string[] | ((props: any) => string[]);
-  friendlyName: string | ((props: any) => string);
+    tags?: string[];
+  friendlyName?: string;
 }
 
 export const Metadata =
-  (key: string, options: MetadataOptions) => (target: ActionInterface<any>) => {
-    if (key) target._key = key;
+(key: string, options?: MetadataOptions) => (target: ActionInterfaceCtor<any>) => {
 
-    if (options.tags) {
-      if (typeof options.tags === "function") {
-        target._tags = options.tags;
-      } else {
-        target._tags = () => options.tags as string[];
-      }
-    }
+    const tags = options?.tags ? () => options.tags! : () => [] as string[];
+    const name =options?.friendlyName ?  () => options.friendlyName! : () => "";
 
-    if (options.friendlyName) {
-      if (typeof options.friendlyName === "function") {
-        target._name = options.friendlyName;
-      } else {
-        target._name = () => options.friendlyName as string;
-      }
+    target.key = key;
+
+    return class newTarget extends target {
+        tags = tags;
+        name = name;
     }
   };
 
 export class Action<TProps extends Record<string, any>>
-  implements ActionCtorInterface<TProps>
+implements ActionInterface<TProps>
 {
   constructor(readonly _task: Task<TProps>) {
     this.props = new Proxy(_task.props, {
@@ -56,25 +49,20 @@ export class Action<TProps extends Record<string, any>>
     }) as TProps;
   }
 
-  public static _key: "";
+  public tags: () => string[] = () => [];
+  public name:  () => string = () => "";
 
-  public static _tags() {
-    return [];
-  }
-
-  public static _name() {
-    return "";
-  }
-
-  public static _validate(props: any) {
+  public validate() {
     return undefined;
   }
 
-  public static _create(props: any) {
-    return props;
+  public create() {
+    return undefined;
   }
 
-  _start() {}
+  _step(name: string) {
+      return (this as any)[`_step_${name}`]?.bind(this);
+  }
 
   _reducer(name: string) {
     return (this as any)[`_reducer_${name}`]?.bind(this);
