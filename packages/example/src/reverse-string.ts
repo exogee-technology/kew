@@ -18,7 +18,7 @@ export class ReverseString extends Action<ReverseMessageProps> {
       this.props.timestamp = Date.now();
   }
 
-  @Step("start")
+  @Step()
   async start() {
     this.props.value = this.props.value.split("").reverse().join("");
   }
