@@ -1,10 +1,10 @@
 // index.ts
 import { Queue, TaskStatus, Logging } from "@exogee/kew";
-import { ReverseString } from "./reverse-string";
+import { ReverseMessage } from "./reverse-message";
 
 // Create a new queue
 const queue = new Queue({
-  actions: [ReverseString],
+  actions: [ReverseMessage],
   logging: Logging.DEBUG,
 });
 
